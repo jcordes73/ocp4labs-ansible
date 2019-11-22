@@ -1,0 +1,4 @@
+- name: Create DHCP config
+  template:
+    src: dhcpd.j2
+    dest: /root/dhcpd.conf

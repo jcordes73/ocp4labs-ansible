@@ -1,0 +1,24 @@
+- file:
+    path: /root/ocp4/bare-metal
+    state: directory
+    mode: '0755'
+- shell: echo -n 'admin:admin123' | base64 -w0
+  register: nexus_digest_output
+- set_fact:
+    nexus_digest: "{{ nexus_digest_output.stdout }}"
+- command: ssh-keygen -q -t rsa -f /root/.ssh/id_ocplabs -C "" -N ""
+  args:
+    creates: /root/.ssh/id_ocplabs
+- shell: "cat /root/.ssh/id_ocplabs.pub | cut -d' ' -f1,2"
+  register: ssh_key_output
+- set_fact:
+    ssh_key: "{{ ssh_key_output.stdout }}"
+- shell: "openssl s_client -showcerts -servername {{ hostvars['bastion']['ansible_host'] }} -connect {{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }} </dev/null 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sed 's/\\(.*\\)/  \\1/g'"
+  register: additional_trustbundle_output
+- set_fact:
+    additional_trustbundle: "{{ additional_trustbundle_output.stdout }}"
+- template:
+    src: install-config-air-gapped.j2
+    dest: /root/ocp4/bare-metal/install-config.yaml
+- shell: /root/ocp4/bin/openshift-install --dir /root/ocp4/bare-metal create manifests
+- shell: /root/ocp4/bin/openshift-install --dir /root/ocp4/bare-metal create ignition-configs

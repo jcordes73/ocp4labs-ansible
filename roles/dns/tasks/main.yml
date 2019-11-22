@@ -1,0 +1,16 @@
+- name: Create dnsmasq config
+  template:
+    src: dnsmasq-ocplabs.j2
+    dest: /root/ocplabs.conf
+- name: Enable DNS Port (TCP Port 53, public zone) firewalld
+  firewalld:
+    port: "53/tcp"
+    zone: public
+    permanent: yes
+    state: enabled
+- name: Enable DNS Port (UDP Port 53, public zone) firewalld
+  firewalld:
+    port: "53/udp"
+    zone: public
+    permanent: yes
+    state: enabled

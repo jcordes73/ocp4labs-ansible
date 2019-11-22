@@ -1,0 +1,20 @@
+[ req ]
+default_bits       = 2048
+distinguished_name = req_distinguished_name
+req_extensions     = req_ext
+[ req_distinguished_name ]
+countryName         = SomeCountry
+stateOrProvinceName = SomeState
+localityName        = SomeCity
+organizationName    = {{ ocp4_cluster_domain_name }}
+commonName          = ocplabs
+[ req_ext ]
+subjectAltName = @alt_names
+[alt_names]
+DNS.1   = bastion.{{ ocp4_cluster_domain_name }}
+DNS.2   = bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }}
+IP.1    = {{ hostvars['bastion']['ansible_host'] }}
+[ v3_ca ]
+subjectKeyIdentifier = hash
+basicConstraints = critical, CA:true
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign

@@ -1,0 +1,5 @@
+{
+  "name":"docker",
+  "type":"groovy",
+  "content":"import org.sonatype.nexus.repository.Repository; import org.sonatype.nexus.repository.storage.WritePolicy; repository.createDockerHosted('ocp4', 5000, 5555, 'default', true, true, WritePolicy.ALLOW_ONCE)"
+}

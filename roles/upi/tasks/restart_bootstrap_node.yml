@@ -1,0 +1,4 @@
+- raw: sudo shutdown -r now
+  delegate_to: "{{ hostvars['bootstrap']['ansible_host'] }}"
+  remote_user: core
+  ignore_errors: yes

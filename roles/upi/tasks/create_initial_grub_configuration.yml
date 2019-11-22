@@ -1,0 +1,11 @@
+- copy:
+    src: grub.cfg
+    dest: /var/lib/tftpboot/uefi
+- template:
+    src: grub-master.j2
+    dest: /var/lib/tftpboot/uefi/grub.cfg-{{ hostvars[item]['ethernet'] }}
+  with_items: "{{ groups['masters'] }}"
+- template:
+    src: grub-bootstrap.j2
+    dest: //var/lib/tftpboot/uefi/grub.cfg-{{ hostvars[item]['ethernet'] }}
+  with_items: "{{ groups['bootstrap'] }}"

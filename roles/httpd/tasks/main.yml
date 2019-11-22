@@ -1,0 +1,26 @@
+- name: Install HTTPD Server
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - httpd
+- name: Enable HTTP service on firewalld
+  firewalld:
+    service: http 
+    permanent: yes
+    state: enabled
+- name: Create directory for archives
+  file:
+    path: /var/www/html/archive
+    mode: '0755'
+- name: Create HTTP image directory
+  file:
+    path: /var/www/html/archive/RedHat-CoreOS
+    state: directory
+    mode: '0755'
+- name: Enable and start HTTPD service
+  systemd:
+    name: httpd
+    state: started
+    enabled: yes

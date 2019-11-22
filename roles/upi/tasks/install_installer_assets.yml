@@ -1,0 +1,44 @@
+- selinux:
+    state: disabled
+- copy:
+    src: /root/ocp4/bare-metal/{{ item }}
+    dest: /var/www/html/archive/RedHat-CoreOS
+    remote_src: yes
+  with_items:
+  - master.ign
+  - bootstrap.ign
+  - worker.ign
+- get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_release}}/{{ocp4_release}}/rhcos-{{ocp4_release}}-x86_64-installer-kernel
+    dest: /var/lib/tftpboot/images/RedHat-CoreOS/vmlinuz
+- get_url:
+    url:  https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_release}}/{{ocp4_release}}/rhcos-{{ocp4_release}}-x86_64-installer-initramfs.img
+    dest: /var/lib/tftpboot/images/RedHat-CoreOS/initramfs.img
+- get_url:
+    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_release}}/{{ocp4_release}}/rhcos-{{ocp4_release}}-x86_64-metal-uefi.raw.gz
+    dest: /var/www/html/archive/RedHat-CoreOS/rhcos-{{ocp4_release}}-metal-uefi.raw.gz
+- file:
+    path: /var/www/html/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz
+    state: absent
+- file:
+     src: /var/www/html/archive/RedHat-CoreOS/rhcos-{{ocp4_release}}-metal-uefi.raw.gz
+     dest: /var/www/html/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz
+     state: link
+     remote_src: yes
+- file:
+    path: /var/www/html/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz.sha256sum
+    state: absent
+- shell: sha256sum /var/www/html/archive/RedHat-CoreOS/rhcos-{{ocp4_release}}-metal-uefi.raw.gz > /var/www/html/archive/RedHat-CoreOS/rhcos-${RHCOS_VERSION}-metal-uefi.raw.gz.sha256sum
+- file:
+    src: /var/www/html/archive/RedHat-CoreOS/rhcos-{{ocp4_release}}-metal-uefi.raw.gz.sha256sum
+    dest: /var/www/html/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz.sha256sum
+    state: link
+    remote_src: yes
+- file:
+    path: /var/www/html/archive
+    mode: g+r
+    recurse: yes
+- shell: chcon -Rv --type=httpd_t /var/www/html/archive
+-  selinux:
+    policy: targeted
+    state: enforcing

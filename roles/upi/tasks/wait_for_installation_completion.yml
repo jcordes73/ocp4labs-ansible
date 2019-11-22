@@ -1,0 +1,1 @@
+- shell: /root/ocp4/bin/openshift-install --dir /root/ocp4/bare-metal wait-for install-complete

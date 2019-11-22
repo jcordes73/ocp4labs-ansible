@@ -1,0 +1,11 @@
+- hosts: bastion
+  roles:
+#  - storage
+#  - nfs
+#  - dns
+#  - haproxy
+#  - dhcp
+#  - tftp
+#  - httpd
+#  - nexus
+  - upi

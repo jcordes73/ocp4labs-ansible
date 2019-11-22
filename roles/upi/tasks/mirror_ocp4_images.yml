@@ -1,0 +1,14 @@
+- get_url:
+    url: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+    dest: /usr/bin/jq
+    mode: '755'
+- shell: curl --silent --data-urlencode "grant_type=refresh_token" --data-urlencode "client_id=cloud-services" --data-urlencode "refresh_token={{ ocp4_offline_access_token }}" https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token | jq -r .access_token
+  register: bearer_token_output
+- set_fact:
+    bearer_token: "{{ bearer_token_output.stdout }}"
+- shell: "curl -X POST \"https://api.openshift.com/api/accounts_mgmt/v1/access_token\" -H \"accept: application/json\" -H \"Authorization: Bearer {{ bearer_token }}\" -o /root/ocp4/pull-secrets-temp.json"
+- shell: "jq \'.auths += {\"{{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}\": {\"auth\": \"{{ nexus_digest }}\",\"email\": \"noemail@localhost\"}}\' < /root/ocp4/pull-secrets-temp.json > /root/ocp4/pull-secrets.json"
+- file:
+    path: /root/ocp4/pull-secrets-temp.json
+    state: absent
+- shell: /root/ocp4/bin/oc adm release mirror -a /root/ocp4/pull-secrets.json --from=quay.io/openshift-release-dev/ocp-release:{{ ocp4_release }} --to-release-image={{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev:{{ ocp4_release }} --to={{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev --insecure=true

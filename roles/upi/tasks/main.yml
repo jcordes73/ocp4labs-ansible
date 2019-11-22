@@ -1,0 +1,40 @@
+#- name: Download OCP 4 Clients and Installer
+#  import_tasks: clients_install.yml
+#- name: Create OCP 4 UPI intallation configuration for Bare Metal
+#  import_tasks: create_installer_config.yml
+#- name: Upload OCP 4 UPI installion assets
+#  import_tasks: install_installer_assets.yml
+#- name: Mirror OCP 4 Images for Disconnected Install
+#  import_tasks: mirror_ocp4_images.yml
+#- name: Create initial Grub (all Nodes) configuration
+#  import_tasks: create_initial_grub_configuration.yml
+#- name: Initialize Bootstrap node
+#  import_tasks: initialize_bootstrap_node.yml
+#- name: Initialize Master node
+#  import_tasks: initialize_master_node.yml
+#- name: Wait for Bootstrap and Master initial boot
+#  pause:
+#    minutes: 2
+#- name: Create Bootstrap Grub configuration
+#  import_tasks: create_bootstrap_grub_configuration.yml
+#- name: Create Master Grub configuration
+#  import_tasks: create_master_grub_configuration.yml
+#- name: Wait for Bootstrap completion
+#  import_tasks: wait_for_bootstrap_completion.yml
+#- name: Create initial Grub (Worker Nodes) configuration
+#  import_tasks: create_initial_worker_grub_configuration.yml
+#- name: Restart Bootstrap Node
+#  import_tasks: restart_bootstrap_node.yml
+#- name: Initialize Worker Nodes
+#  import_tasks: initialize_worker_node.yml
+- name: Change registry storage to emptyDir
+  import_tasks: change_registry_storage.yml
+#- name: Wait for Workers initial boot
+#  pause:
+#    minutes: 2
+#- name: Create Worker Grub configuration
+#  import_tasks: create_worker_grub_configuration.yml
+#- name: Accept Node certificates
+#  import_tasks: accept_node_certificates.yml
+- name: Wait for Installation completion
+  import_tasks: wait_for_installation_completion.yml

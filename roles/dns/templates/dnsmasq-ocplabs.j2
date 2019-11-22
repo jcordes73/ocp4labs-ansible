@@ -1,0 +1,10 @@
+strict-order
+domain-needed
+log-queries
+srv-host=_etcd-server-ssl._tcp.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}},etcd-0.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}},2380,0,10
+address=/etcd-0.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['masters'][0]]['ansible_host'] }}
+address=/etcd-member-master.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['masters'][0]]['ansible_host'] }}
+address=/api.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['bastion'][0]]['ansible_host'] }}
+address=/api-int.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['bastion'][0]]['ansible_host'] }}
+address=/.apps.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['bastion'][0]]['ansible_host'] }}
+

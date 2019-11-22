@@ -1,0 +1,49 @@
+- name: Create a volume group on top of /dev/sda1
+  lvg:
+    vg: vg_xfs
+    pvs: /dev/sda1
+    pesize: 230G
+- name: Create a logical volume to consume all remaining space in the volume group
+  lvol:
+    vg: vg_xfs
+    lv: xfs_db
+    size: +100%FREE
+- name: Create XFS
+  filesystem:
+    dev: /dev/vg_xfs/xfs_db
+    fstype: xfs
+- name:
+  file:
+    path: /mnt/detached-storage
+    state: directory
+- name: Mount detached storage
+  mount:
+    src: /dev/mapper/vg_xfs-xfs_db
+    path: /mnt/detached-storage
+    fstype: xfs
+    opts: default
+    state: mounted
+- name: Create a volume group on top of /dev/sdb1
+  lvg:
+    vg: vg_nfs_xfs
+    pvs: /dev/sdb1
+    pesize: 470G
+- name: Create a logical volume to consume all remaining space in the volume group
+  lvol:
+    vg: vg_nfs_xfs
+    lv: nfs_xfs_db
+    size: +100%FREE
+- name: Create XFS
+  filesystem:
+    dev: /dev/vg_nfs_xfs/nfs_xfs_db
+    fstype: xfs
+- name:
+  file:
+    path: /mnt/registry-storage
+    state: directory
+- name: Mount registry storage
+  mount:
+    src: /dev/mapper/vg_nfs_xfs-nfs_xfs_db
+    path: /mnt/registry-storage
+    fstype: xfs
+    state: mounted

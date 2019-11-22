@@ -1,0 +1,26 @@
+- name: Install NFS Server
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - nfs-utils
+    - rpcbind
+- name: Enable NFS service on firewalld
+  firewalld:
+    service: nfs
+    permanent: yes
+    state: enabled
+- name: Copy /etc/exports
+  template:
+    src: nfs-export.j2
+    dest: /etc/export
+- name: Enable and start NFS services
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+  - nfs
+  - nfs-lock
+  - rpcbind

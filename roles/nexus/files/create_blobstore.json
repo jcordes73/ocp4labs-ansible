@@ -1,0 +1,8 @@
+{
+  "softQuota": {
+    "type": "string",
+    "limit": 0
+  },
+  "path": "default",
+  "name": "default"
+}

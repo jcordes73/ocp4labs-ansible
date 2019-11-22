@@ -1,0 +1,5 @@
+- wakeonlan:
+    mac: "{{ hostvars['bootstrap']['ethernet'] }}"
+    broadcast: 192.168.1.255
+- pause:
+    seconds: 10

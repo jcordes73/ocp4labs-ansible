@@ -1,0 +1,125 @@
+#---------------------------------------------------------------------
+# Configuration for OCP 4 Labs.  See the full configuration options online.
+#
+#   http://haproxy.1wt.eu/download/1.4/doc/configuration.txt
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    log /dev/log local0
+    log /dev/log local1 debug
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    tcp
+    log                     global
+    option                  tcplog
+    option                  dontlognull
+    option http-server-close
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+frontend ssl-apiserver
+    bind *:6443
+    mode tcp
+    option tcplog
+    tcp-request inspect-delay 5s
+    tcp-request content accept if { req.ssl_hello_type 1 }
+    acl acl_api_server req.ssl_sni -m beg api.{{ocp4_cluster_name}}
+    acl acl_api_int_server req.ssl_sni -m beg api-int.{{ocp4_cluster_name}}
+    use_backend api_server if { req.ssl_sni -m beg api.{{ocp4_cluster_name}} }
+    use_backend api_int_server if { req.ssl_sni -m beg api-int.{{ocp4_cluster_name}}}
+
+backend api_server
+    mode tcp
+    option ssl-hello-chk
+{% for host in groups['bootstrap'] %}
+    server api01 {{ hostvars[host]['inventory_hostname'] }}:6443 check
+{% endfor %}
+{% for host in groups['masters'] %}
+    server api02 {{ hostvars[host]['inventory_hostname'] }}:6443 check
+{% endfor %}
+
+backend api_int_server
+    mode tcp
+    option ssl-hello-chk
+{% for host in groups['bootstrap'] %}
+    server api01 {{ hostvars[host]['inventory_hostname'] }}:6443 check
+{% endfor %}
+{% for host in groups['masters'] %}
+    server api02 {{ hostvars[host]['inventory_hostname'] }}:6443 check
+{% endfor %}
+
+frontend ssl_machineconfig
+    bind *:22623
+    mode tcp
+    default_backend machineconfig
+
+backend machineconfig
+    mode tcp
+{% for host in groups['bootstrap'] %}
+    server machineconfig01 {{ hostvars[host]['inventory_hostname'] }}:22623 check
+{% endfor %}
+{% for host in groups['masters'] %}
+    server machineconfig01 {{ hostvars[host]['inventory_hostname'] }}:22623 check
+{% endfor %}
+
+frontend http
+    bind 192.168.1.106:80
+    mode tcp
+    acl is_openshift_router hdr(host) -m dom .apps.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}
+    use_backend openshift_router_http if is_openshift_router
+    default_backend bastion_http
+
+backend openshift_router_http
+    mode tcp
+{% for host in groups['workers'] %}
+    server node0{{ loop.index }} {{ hostvars[host]['inventory_hostname'] }}:80 check
+{% endfor %}
+
+backend bastion_http
+    mode tcp
+    server bastion 127.0.0.1:80
+
+frontend https
+    bind 192.168.1.106:443
+    mode tcp
+    option tcplog
+    tcp-request inspect-delay 5s
+    tcp-request content accept if { req.ssl_hello_type 1 }
+    use_backend openshift_router_https if { req.ssl_sni -m dom .apps.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}} }
+    default_backend bastion_https
+
+backend openshift_router_https
+    mode tcp
+{% for host in groups['workers'] %}
+    server node0{{ loop.index }} {{ hostvars[host]['inventory_hostname'] }}:443 check
+{% endfor %}
+
+backend bastion_https
+    mode tcp
+    server bastion 127.0.0.1:443

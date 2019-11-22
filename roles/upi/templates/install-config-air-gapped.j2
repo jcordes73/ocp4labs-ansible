@@ -1,0 +1,35 @@
+apiVersion: v1
+baseDomain: {{ ocp4_cluster_domain_name }}
+compute:
+- hyperthreading: Disabled
+  name: worker
+  platform: {}
+  replicas: 3
+controlPlane:
+  hyperthreading: Disabled
+  name: master
+  platform: {}
+  replicas: 1
+metadata:
+  name: {{ ocp4_cluster_name }}
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14
+    hostPrefix: 23
+  machineCIDR: 192.168.1.0/24
+  networkType: OpenShiftSDN
+  serviceNetwork:
+  - 172.30.0.0/16
+platform:
+  none: {}
+imageContentSources:
+- mirrors:
+  - {{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev
+  source: quay.io/openshift-release-dev/ocp-release
+- mirrors:
+  - {{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
+pullSecret: '{"auths":{"{{ hostvars['bastion']['ansible_host'] }}": {"auth": "{{ nexus_digest }}","email": "noemail@localhost"}}}'
+additionalTrustBundle: |
+{{ additional_trustbundle }}
+sshKey: "{{ ssh_key }}" 

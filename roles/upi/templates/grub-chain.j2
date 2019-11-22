@@ -1,0 +1,10 @@
+default=0
+timeout=5
+
+menuentry 'Boot Red Hat CoreOS for OpenShift {{ ocp4_release }}' --class fedora --class gnu-linux --class gnu --class os {
+        insmod part_gpt
+        insmod part_msdos
+        insmod ext2
+        set root=(hd0,1)
+        configfile /efi/redhat/grub.cfg
+}

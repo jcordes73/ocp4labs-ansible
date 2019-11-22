@@ -1,0 +1,8 @@
+- name: Ensure haproxy is installed
+  yum:
+    name: haproxy
+    state: installed
+- name: Create HAProxy config
+  template:
+    src: haproxy.j2
+    dest: /root/haproxy.conf
