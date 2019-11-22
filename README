@@ -1,0 +1,49 @@
+Setting up an OpenShift 4 Lab cluster via Ansible
+
+[ocp4labs:children]
+bastion
+masters
+workers
+bootstrap
+
+[ocp4labs:vars]
+host_key_checking = False
+ansible_ssh_private_key_file=~/.ssh/id_ocplabs
+ansible_ssh_user=root
+ocp4_release=4.2.0
+ocp4_release_name=ocp-release
+ocp4_type=bare-metal
+ocp4_cluster_name=ocp4
+ocp4_cluster_domain_name=ocplabs.com
+rhcos_release=4.2
+
+# Taken from https://cloud.redhat.com/openshift/token
+ocp4_offline_access_token=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICItNGVsY19WZE5fV3NPVVlmMkc0UXhyOEdjd0l4X0t0WFVDaXRhdExLbEx3In0.eyJqdGkiOiIyODk2ODM4Zi0xZGUxLTRkOGYtODRiZC00NWM3MzViMjIyZDYiLCJleHAiOjAsIm5iZiI6MCwiaWF0IjoxNTc0MDg1OTExLCJpc3MiOiJodHRwczovL3Nzby5yZWRoYXQuY29tL2F1dGgvcmVhbG1zL3JlZGhhdC1leHRlcm5hbCIsImF1ZCI6ImNsb3VkLXNlcnZpY2VzIiwic3ViIjoiZjo1MjhkNzZmZi1mNzA4LTQzZWQtOGNkNS1mZTE2ZjRmZTBjZTY6cmhuLWdwcy1qY29yZGVzIiwidHlwIjoiT2ZmbGluZSIsImF6cCI6ImNsb3VkLXNlcnZpY2VzIiwibm9uY2UiOiJjZDY2NjE4MS0zYjQ1LTQ1OTMtYTIxOS04Nzg2MjAyOTc2N2EiLCJhdXRoX3RpbWUiOjAsInNlc3Npb25fc3RhdGUiOiI1NTcyMWNmNy0wMTVkLTQzMTgtYTlhYy05Y2MyMzM0NWZmOTYiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiXX0sInJlc291cmNlX2FjY2VzcyI6e319.f4-ZAjF1V61od7s-8SO7QM5i8BcLCoF_R1vGWabZPgCR0K-hKnLeQb5QBRoFrujIptd1EzmDtWp_st6xniHnTT_dJUanrWziUBNgWTytO9Uhw4jCbRzF8rYV_SzzkG6R0IFeqQOBeK27XFcybpt0mutMl7xFlxcv_8YkCHfvwqFo0wbHbq2C7s6K9TM-vZYIMitorcsedqbu3NuyqAWGNsovlYVQJ3nSbgNfpdgY6utE4U0hwjnZWgl8AogOizt7LS5-RT0eh12xG4AK0yhEyvxm3y7PkK8u7cGSpuSfTuZC-GoQQYkiCqfrPNJ3q9SpB10HjhfQWRjlwfdA8SdN7M2x8YTjoJVWCDOJtFUd4B9N1LmJV3UOs7i38PGOiSEgNfjDDELWFJ1HLJXVAsqV-UMJWr0mgmV_X5W5MX2mVtK5ZAv0mSIDGJmvStWiVUUa2G2VXdtczcQKAkYGiQnxdlw7fXREbIu1i18c01CFvJpFzWbgO5_dNhvGer9vM-wx6dveEuQXC9ISTtLEW7UbNLG3z718d6bv3ZAyZ-sDiPn8pMT37zZWdTZzS0bRhIZS7bqQupeuVCqHIr7gGo8PGwthPva5pEHsVawxyiRP-3GpSdPc7Jh3qJiZgLP1Tltwizp-Ww2pzAqKlp3hjpuE5ijlT8FFBJaDA-DUHv1Lv4g
+
+nexus_version=3.19.1-01
+nexus_port=5555
+
+[all]
+master ansible_host=192.168.1.102 ethernet="70:85:c2:3e:13:27"
+node01 ansible_host=192.168.1.103 ethernet="70:85:c2:3e:12:f8"
+node02 ansible_host=192.168.1.104 ethernet="70:85:c2:3e:11:30"
+node03 ansible_host=192.168.1.105 ethernet="70:85:c2:3e:11:5e"
+bastion ansible_host=192.168.1.106 ethernet="a0:1e:0b:08:c3:cc"
+
+[bastion]
+bastion
+
+[masters]
+master
+
+[workers]
+node01
+node02
+node03
+
+[bootstrap]
+bootstrap ansible_host=192.168.1.105 ethernet="70:85:c2:3e:11:5e"
+
+ansible-playbook -vvv -i ocp4labs-inventory ocp4labs.yml
+
+
