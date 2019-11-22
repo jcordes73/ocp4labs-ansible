@@ -1,5 +1,50 @@
-Setting up an OpenShift 4 Lab cluster via Ansible
+﻿# Setting up an OpenShift 4 Lab cluster via Ansible
 
+## Introduction
+This document described how to install a [Red Hat OpenShift 4](https://www.redhat.com/en/openshift-4) Cluster on a Lab environment.
+
+The lab environment consists of the following parts:
+
+- 4 Bare-Metal machines with 16 GB RAM and 2x SSDs (128 GB and 256 GB) each
+- 1 Bastion host with 4 GB RAM and 2x SSDs (250 GB and 500 GB)
+- 1 Gigabit Switch
+- 1 WLAN-Router
+- 1 KVM switch
+- 1 LCD-Panel
+- USB keyboard and mouse connected to KVM switch
+- 1 toolbox (to contain the lab)
+
+![OpenShift 4 Lab](https://github.com/jcordes73/ocp4labs-ansible/blob/master/images/ocp4labs_assembled.jpg)
+## Steps
+### Setup WLAN router
+The WLAN router needs to have the following configuration settings:
+
+- Disable DHCP (this will be done via the *Bastion* host later)
+- Define the following DNS servers
+	- 8.8.8.8
+	- ```<IP of Bastion Host>```
+	
+### Setup BIOS
+In order for automation to work you need to configure the BIOS of the master and worker nodes to use the following features:
+
+- Boot from Ethernet device
+- Wake-On-LAN (usually hidden in ACPI settings)
+
+### Setup Bastion host
+Create a *Bastion* host with **Red Hat Enterprise Linux 7.5** (or higher) and use subscription-manager to entitle the system.
+
+Also you need to install *Ansible* via
+```yum install -y ansible```
+
+### Get IP/MAC-Addresses
+For creating the *Ansible* inventory file you will need to define IP addresses for the masters, workers, and bootstrap node.
+
+### Get an offline access token
+Go to https://cloud.redhat.com/openshift/token and request an offline access token. This is needed later for requesting the pull secrets for mirroring container images.
+
+### Create inventory file
+Now create an *Ansible* inventory file named *ocp4labs-inventory* with the following content (adjust as you see fit):
+```
 [ocp4labs:children]
 bastion
 masters
@@ -13,22 +58,21 @@ ansible_ssh_user=root
 ocp4_release=4.2.0
 ocp4_release_name=ocp-release
 ocp4_type=bare-metal
-ocp4_cluster_name=ocp4
-ocp4_cluster_domain_name=ocplabs.com
+ocp4_cluster_name=<cluster-name>
+ocp4_cluster_domain_name=<cluster-domain-name>
 rhcos_release=4.2
 
 # Taken from https://cloud.redhat.com/openshift/token
-ocp4_offline_access_token=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICItNGVsY19WZE5fV3NPVVlmMkc0UXhyOEdjd0l4X0t0WFVDaXRhdExLbEx3In0.eyJqdGkiOiIyODk2ODM4Zi0xZGUxLTRkOGYtODRiZC00NWM3MzViMjIyZDYiLCJleHAiOjAsIm5iZiI6MCwiaWF0IjoxNTc0MDg1OTExLCJpc3MiOiJodHRwczovL3Nzby5yZWRoYXQuY29tL2F1dGgvcmVhbG1zL3JlZGhhdC1leHRlcm5hbCIsImF1ZCI6ImNsb3VkLXNlcnZpY2VzIiwic3ViIjoiZjo1MjhkNzZmZi1mNzA4LTQzZWQtOGNkNS1mZTE2ZjRmZTBjZTY6cmhuLWdwcy1qY29yZGVzIiwidHlwIjoiT2ZmbGluZSIsImF6cCI6ImNsb3VkLXNlcnZpY2VzIiwibm9uY2UiOiJjZDY2NjE4MS0zYjQ1LTQ1OTMtYTIxOS04Nzg2MjAyOTc2N2EiLCJhdXRoX3RpbWUiOjAsInNlc3Npb25fc3RhdGUiOiI1NTcyMWNmNy0wMTVkLTQzMTgtYTlhYy05Y2MyMzM0NWZmOTYiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiXX0sInJlc291cmNlX2FjY2VzcyI6e319.f4-ZAjF1V61od7s-8SO7QM5i8BcLCoF_R1vGWabZPgCR0K-hKnLeQb5QBRoFrujIptd1EzmDtWp_st6xniHnTT_dJUanrWziUBNgWTytO9Uhw4jCbRzF8rYV_SzzkG6R0IFeqQOBeK27XFcybpt0mutMl7xFlxcv_8YkCHfvwqFo0wbHbq2C7s6K9TM-vZYIMitorcsedqbu3NuyqAWGNsovlYVQJ3nSbgNfpdgY6utE4U0hwjnZWgl8AogOizt7LS5-RT0eh12xG4AK0yhEyvxm3y7PkK8u7cGSpuSfTuZC-GoQQYkiCqfrPNJ3q9SpB10HjhfQWRjlwfdA8SdN7M2x8YTjoJVWCDOJtFUd4B9N1LmJV3UOs7i38PGOiSEgNfjDDELWFJ1HLJXVAsqV-UMJWr0mgmV_X5W5MX2mVtK5ZAv0mSIDGJmvStWiVUUa2G2VXdtczcQKAkYGiQnxdlw7fXREbIu1i18c01CFvJpFzWbgO5_dNhvGer9vM-wx6dveEuQXC9ISTtLEW7UbNLG3z718d6bv3ZAyZ-sDiPn8pMT37zZWdTZzS0bRhIZS7bqQupeuVCqHIr7gGo8PGwthPva5pEHsVawxyiRP-3GpSdPc7Jh3qJiZgLP1Tltwizp-Ww2pzAqKlp3hjpuE5ijlT8FFBJaDA-DUHv1Lv4g
-
+ocp4_offline_access_token=<offline-access-token>
 nexus_version=3.19.1-01
 nexus_port=5555
 
 [all]
-master ansible_host=192.168.1.102 ethernet="70:85:c2:3e:13:27"
-node01 ansible_host=192.168.1.103 ethernet="70:85:c2:3e:12:f8"
-node02 ansible_host=192.168.1.104 ethernet="70:85:c2:3e:11:30"
-node03 ansible_host=192.168.1.105 ethernet="70:85:c2:3e:11:5e"
-bastion ansible_host=192.168.1.106 ethernet="a0:1e:0b:08:c3:cc"
+master ansible_host=<node-ip> ethernet="<node-mac>"
+node01 ansible_host=<node-ip> ethernet="<node-mac>"
+node02 ansible_host=<node-ip> ethernet="<node-mac>"
+node03 ansible_host=<node-ip> ethernet="<node-mac>"
+bastion ansible_host=<node-ip> ethernet="<node-mac>"
 
 [bastion]
 bastion
@@ -42,8 +86,11 @@ node02
 node03
 
 [bootstrap]
-bootstrap ansible_host=192.168.1.105 ethernet="70:85:c2:3e:11:5e"
+bootstrap ansible_host=<node-ip> ethernet="<node-mac>"
+```
+### Run Ansible playbook
+Now you are ready to run the *Ansible* playbook as follows:
 
-ansible-playbook -vvv -i ocp4labs-inventory ocp4labs.yml
+```ansible-playbook -vvv -i ocp4labs-inventory ocp4labs.yml```
 
-
+Depending on the hardware available and speed of the internet connection this may take a while, so grab a coffee or cook yourself a good meal. Soon you will have a fully functional OpenShift 4 Cluster up-and-running to play around with.
