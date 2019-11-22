@@ -14,7 +14,8 @@ The lab environment consists of the following parts:
 - USB keyboard and mouse connected to KVM switch
 - 1 toolbox (to contain the lab)
 
-![OpenShift 4 Lab](images/ocp4labs_assembled.jpg|width=600)
+<img src="images/ocp4labs_assembled.jpg"  width="400" height="200" />
+
 ## Steps
 ### Setup WLAN router
 The WLAN router needs to have the following configuration settings:
