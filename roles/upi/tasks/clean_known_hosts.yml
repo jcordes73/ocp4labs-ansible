@@ -1,0 +1,7 @@
+- lineinfile:
+    path: /root/.ssh/known_hosts
+    regexp: ".*{{ hostvars[item]['ansible_host'] }}.*"
+    state: absent
+  with_flattened:
+  - "{{ groups['masters'] }}"
+  - "{{ groups['workers'] }}"

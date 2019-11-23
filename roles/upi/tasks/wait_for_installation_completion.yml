@@ -1,1 +1,1 @@
-- shell: /root/ocp4/bin/openshift-install --dir /root/ocp4/bare-metal wait-for install-complete
+- shell: "{{ ocp4_home }}/bin/openshift-install --dir {{ ocp4_home }}/bare-metal wait-for install-complete"

@@ -1,7 +1,7 @@
 - selinux:
     state: disabled
 - copy:
-    src: /root/ocp4/bare-metal/{{ item }}
+    src: "{{ ocp4_home }}/bare-metal/{{ item }}"
     dest: /var/www/html/archive/RedHat-CoreOS
     remote_src: yes
   with_items:

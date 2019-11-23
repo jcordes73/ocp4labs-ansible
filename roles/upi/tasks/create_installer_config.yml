@@ -1,5 +1,8 @@
 - file:
-    path: /root/ocp4/bare-metal
+    path: "{{ ocp4_home }}/bare-metal"
+    state: absent
+- file:
+    path: "{{ ocp4_home }}/bare-metal"
     state: directory
     mode: '0755'
 - shell: echo -n 'admin:admin123' | base64 -w0
@@ -18,7 +21,7 @@
 - set_fact:
     additional_trustbundle: "{{ additional_trustbundle_output.stdout }}"
 - template:
-    src: install-config-air-gapped.j2
-    dest: /root/ocp4/bare-metal/install-config.yaml
-- shell: /root/ocp4/bin/openshift-install --dir /root/ocp4/bare-metal create manifests
-- shell: /root/ocp4/bin/openshift-install --dir /root/ocp4/bare-metal create ignition-configs
+    src: install-config.j2
+    dest: "{{ ocp4_home }}/bare-metal/install-config.yaml"
+- shell: "{{ ocp4_home }}/bin/openshift-install --dir {{ ocp4_home }}/bare-metal create manifests"
+- shell: "{{ ocp4_home }}/bin/openshift-install --dir {{ ocp4_home }}/bare-metal create ignition-configs"

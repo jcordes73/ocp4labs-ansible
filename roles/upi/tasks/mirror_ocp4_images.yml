@@ -6,9 +6,9 @@
   register: bearer_token_output
 - set_fact:
     bearer_token: "{{ bearer_token_output.stdout }}"
-- shell: "curl -X POST \"https://api.openshift.com/api/accounts_mgmt/v1/access_token\" -H \"accept: application/json\" -H \"Authorization: Bearer {{ bearer_token }}\" -o /root/ocp4/pull-secrets-temp.json"
-- shell: "jq \'.auths += {\"{{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}\": {\"auth\": \"{{ nexus_digest }}\",\"email\": \"noemail@localhost\"}}\' < /root/ocp4/pull-secrets-temp.json > /root/ocp4/pull-secrets.json"
+- shell: "curl -X POST \"https://api.openshift.com/api/accounts_mgmt/v1/access_token\" -H \"accept: application/json\" -H \"Authorization: Bearer {{ bearer_token }}\" -o {{ ocp4_home }}/pull-secrets-temp.json"
+- shell: "jq \'.auths += {\"{{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}\": {\"auth\": \"{{ nexus_digest }}\",\"email\": \"noemail@localhost\"}}\' < {{ ocp4_home }}/pull-secrets-temp.json > {{ ocp4_home }}/pull-secrets.json"
 - file:
-    path: /root/ocp4/pull-secrets-temp.json
+    path: "{{ ocp4_home }}/pull-secrets-temp.json"
     state: absent
-- shell: /root/ocp4/bin/oc adm release mirror -a /root/ocp4/pull-secrets.json --from=quay.io/openshift-release-dev/ocp-release:{{ ocp4_release }} --to-release-image={{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev:{{ ocp4_release }} --to={{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev --insecure=true
+- shell: "{{ ocp4_home }}/bin/oc adm release mirror -a {{ ocp4_home }}/pull-secrets.json --from=quay.io/openshift-release-dev/ocp-release:{{ ocp4_release }} --to-release-image={{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev:{{ ocp4_release }} --to={{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev --insecure=true"

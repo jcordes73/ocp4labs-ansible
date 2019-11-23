@@ -30,29 +30,29 @@
    creates: /opt/nexus/etc/ssl/keystore.jks
 - name: Create Certificate Signing Request
   shell:
-    cmd: "keytool -certreq -alias jetty -keystore /opt/nexus/etc/ssl/keystore.jks -file /root/ocp4/jetty.csr  -storepass 'password' -keypass 'password' -ext SAN=dns:bastion.{{ ocp4_cluster_domain_name }},dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}"
-    creates: /root/ocp4/jetty.csr
+    cmd: "keytool -certreq -alias jetty -keystore /opt/nexus/etc/ssl/keystore.jks -file {{ ocp4_home }}/jetty.csr  -storepass 'password' -keypass 'password' -ext SAN=dns:bastion.{{ ocp4_cluster_domain_name }},dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}"
+    creates: "{{ ocp4_home }}/jetty.csr"
 - name: Create OpenSSL config
   template:
     src: openssl.j2
-    dest: /root/ocp4/openssl.conf
+    dest: "{{ ocp4_home }}/openssl.conf"
 - name: Create CA Request key and certificate
   shell:
-    cmd: openssl req -new -keyout /root/ocp4/cakey.pem -out /root/ocp4/careq.pem
-    creates: /root/ocp4/cakey.pem
+    cmd: "openssl req -new -keyout {{ ocp4_home }}/cakey.pem -out {{ ocp4_home }}/careq.pem"
+    creates: "{{ ocp4_home }}/cakey.pem"
 - name: Create Root CA
   shell:
-    cmd: openssl x509 -signkey /root/ocp4/cakey.pem -req -days 3650 -in /root/ocp4/careq.pem -out /root/ocp4/caroot.cer -extfile /root/ocp4/openssl.conf -extensions v3_ca
-    creates: /root/ocp4/caroot.cer
+    cmd: "openssl x509 -signkey {{ ocp4_home }}/cakey.pem -req -days 3650 -in {{ ocp4_home }}/careq.pem -out {{ ocp4_home }}/caroot.cer -extfile {{ ocp4_home }}/openssl.conf -extensions v3_ca"
+    creates: "{{ ocp4_home }}/caroot.cer"
 - name: Create Serial
   shell:
-    cmd: echo 1234 > /root/ocp4/serial.txt
-    creates: /root/ocp4/serial.txt
+    cmd: "echo 1234 > {{ ocp4_home }}/serial.txt"
+    creates: "{{ ocp4_home }}/serial.txt"
 - name: Create Jetty Test CA
-  shell: openssl x509 -CA /root/ocp4/caroot.cer -CAkey /root/ocp4/cakey.pem -CAserial /root/ocp4/serial.txt -req -in /root/ocp4/jetty.csr -out /root/ocp4/JettyTestCA.cer -days 365 -extfile /root/ocp4/openssl.conf -extensions req_ext
-    creates: /root/ocp4/JettyTestCA.cer
+  shell: "openssl x509 -CA {{ ocp4_home }}/caroot.cer" -CAkey {{ ocp4_home }}/cakey.pem -CAserial {{ ocp4_home }}/serial.txt -req -in {{ ocp4_home }}/jetty.csr -out {{ ocp4_home }}/JettyTestCA.cer -days 365 -extfile {{ ocp4_home }}/openssl.conf -extensions req_ext
+    creates: "{{ ocp4_home }}/JettyTestCA.cer"
 - name: Import Test CA into keystore
-  shell: keytool -import -alias TestCA -file caroot.cer -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password' -keypass 'password'
+  shell: "keytool -import -alias TestCA -file {{ ocp4_home }}/caroot.cer -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password' -keypass 'password'"
 - name: Import Jetty Test CA into keystore
   shell: "keytool -import -alias jetty -file JettyTestCA.cer -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password' -keypass 'password' -ext SAN=dns:bastion.{{ ocp4_cluster_domain_name }},dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}"
 - name: Copy nexus.properties
@@ -100,11 +100,11 @@
     enabled: yes
 - name: Extract Nexus certificate
   shell:
-    cmd: keytool -export -alias jetty -file /root/ocp4/nexus.der -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password'
-    creates: /root/ocp4/nexus.der
+    cmd: "keytool -export -alias jetty -file {{ ocp4_home }}/nexus.der -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password'"
+    creates: "{{ ocp4_home }}/nexus.der"
 - name: Convert Nexus certificate
   shell:
-    cmd: openssl x509 -inform der -in /root/ocp4/nexus.der -out /etc/pki/ca-trust/source/anchors/nexus.crt
+    cmd: "openssl x509 -inform der -in {{ ocp4_home }}/nexus.der -out /etc/pki/ca-trust/source/anchors/nexus.crt"
     creates: /etc/pki/ca-trust/source/anchors/nexus.crt
 - name: Update CA trust
   shell: update-ca-trust extract

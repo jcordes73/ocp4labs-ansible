@@ -4,22 +4,22 @@ compute:
 - hyperthreading: Disabled
   name: worker
   platform: {}
-  replicas: 3
+  replicas: {{ groups['workers'] | length }} 
 controlPlane:
   hyperthreading: Disabled
   name: master
   platform: {}
-  replicas: 1
+  replicas: {{ groups['masters'] | length }}
 metadata:
   name: {{ ocp4_cluster_name }}
 networking:
   clusterNetwork:
-  - cidr: 10.128.0.0/14
-    hostPrefix: 23
-  machineCIDR: 192.168.1.0/24
-  networkType: OpenShiftSDN
+  - cidr: {{ ocp4_network_cluster_cidr }} 
+    hostPrefix: {{ ocp4_network_cluster_hostprefix }} 
+  machineCIDR: {{ ocp4_network_machine_cidr }}
+  networkType: {{ ocp4_network_type }}
   serviceNetwork:
-  - 172.30.0.0/16
+  - {{ ocp4_network_service_network }}
 platform:
   none: {}
 imageContentSources:

@@ -1,0 +1,5 @@
+ocp4_network_cluster_cidr: "10.128.0.0/14"
+ocp4_network_cluster_hostprefix: "23"
+ocp4_network_machine_cidr: "192.168.1.0/24"
+ocp4_network_type: "OpenShiftSDN"
+ocp4_network_service_network: "172.30.0.0/16"

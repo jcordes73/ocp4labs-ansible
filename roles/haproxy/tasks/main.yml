@@ -5,4 +5,4 @@
 - name: Create HAProxy config
   template:
     src: haproxy.j2
-    dest: /root/haproxy.conf
+    dest: /etc/haproxy/haproxy.cfg

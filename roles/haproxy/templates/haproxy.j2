@@ -52,26 +52,26 @@ frontend ssl-apiserver
     acl acl_api_server req.ssl_sni -m beg api.{{ocp4_cluster_name}}
     acl acl_api_int_server req.ssl_sni -m beg api-int.{{ocp4_cluster_name}}
     use_backend api_server if { req.ssl_sni -m beg api.{{ocp4_cluster_name}} }
-    use_backend api_int_server if { req.ssl_sni -m beg api-int.{{ocp4_cluster_name}}}
+    use_backend api_int_server if { req.ssl_sni -m beg api-int.{{ocp4_cluster_name}} }
 
 backend api_server
     mode tcp
     option ssl-hello-chk
 {% for host in groups['bootstrap'] %}
-    server api01 {{ hostvars[host]['inventory_hostname'] }}:6443 check
+    server api01 {{ hostvars[host]['ansible_host'] }}:6443 check
 {% endfor %}
 {% for host in groups['masters'] %}
-    server api02 {{ hostvars[host]['inventory_hostname'] }}:6443 check
+    server api02 {{ hostvars[host]['ansible_host'] }}:6443 check
 {% endfor %}
 
 backend api_int_server
     mode tcp
     option ssl-hello-chk
 {% for host in groups['bootstrap'] %}
-    server api01 {{ hostvars[host]['inventory_hostname'] }}:6443 check
+    server api01 {{ hostvars[host]['ansible_host'] }}:6443 check
 {% endfor %}
 {% for host in groups['masters'] %}
-    server api02 {{ hostvars[host]['inventory_hostname'] }}:6443 check
+    server api02 {{ hostvars[host]['ansible_host'] }}:6443 check
 {% endfor %}
 
 frontend ssl_machineconfig
@@ -82,14 +82,14 @@ frontend ssl_machineconfig
 backend machineconfig
     mode tcp
 {% for host in groups['bootstrap'] %}
-    server machineconfig01 {{ hostvars[host]['inventory_hostname'] }}:22623 check
+    server machineconfig01 {{ hostvars[host]['ansible_host'] }}:22623 check
 {% endfor %}
 {% for host in groups['masters'] %}
-    server machineconfig01 {{ hostvars[host]['inventory_hostname'] }}:22623 check
+    server machineconfig01 {{ hostvars[host]['ansible_host'] }}:22623 check
 {% endfor %}
 
 frontend http
-    bind 192.168.1.106:80
+    bind {{ hostvars['bastion']['ansible_host'] }}:80
     mode tcp
     acl is_openshift_router hdr(host) -m dom .apps.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}
     use_backend openshift_router_http if is_openshift_router
@@ -98,7 +98,7 @@ frontend http
 backend openshift_router_http
     mode tcp
 {% for host in groups['workers'] %}
-    server node0{{ loop.index }} {{ hostvars[host]['inventory_hostname'] }}:80 check
+    server node0{{ loop.index }} {{ hostvars[host]['ansible_host'] }}:80 check
 {% endfor %}
 
 backend bastion_http
@@ -106,7 +106,7 @@ backend bastion_http
     server bastion 127.0.0.1:80
 
 frontend https
-    bind 192.168.1.106:443
+    bind {{ hostvars['bastion']['ansible_host'] }}:443
     mode tcp
     option tcplog
     tcp-request inspect-delay 5s
@@ -117,7 +117,7 @@ frontend https
 backend openshift_router_https
     mode tcp
 {% for host in groups['workers'] %}
-    server node0{{ loop.index }} {{ hostvars[host]['inventory_hostname'] }}:443 check
+    server node0{{ loop.index }} {{ hostvars[host]['ansible_host'] }}:443 check
 {% endfor %}
 
 backend bastion_https
