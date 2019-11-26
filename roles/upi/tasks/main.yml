@@ -20,8 +20,8 @@
   import_tasks: create_master_grub_configuration.yml
 - name: Wait for Bootstrap completion
   import_tasks: wait_for_bootstrap_completion.yml
-- name: Create initial Grub (Worker Nodes) configuration
-  import_tasks: create_initial_worker_grub_configuration.yml
+- name: Create Worker Grub configuration for Bootstrap Node
+  import_tasks: create_bootstrap_worker_grub_configuration.yml
 - name: Restart Bootstrap Node
   import_tasks: restart_bootstrap_node.yml
 - name: Initialize Worker Nodes

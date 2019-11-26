@@ -1,4 +1,10 @@
+- name: Ensure dhcp is installed
+  yum:
+    name: dhcp
+    state: installed
 - name: Create DHCP config
   template:
     src: dhcpd.j2
     dest: /etc/dhcp/dhcpd.conf
+  notify:
+    - restart dhcp

@@ -1,4 +1,4 @@
 - template:
     src: grub-worker.j2
     dest: //var/lib/tftpboot/uefi/grub.cfg-{{ hostvars[item]['ethernet'] }}
-  with_items: "{{ groups['workers'] }}"
+  with_items: "{{ groups['bootstrap'] }}"

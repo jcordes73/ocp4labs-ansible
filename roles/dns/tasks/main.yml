@@ -2,6 +2,8 @@
   template:
     src: dnsmasq-ocplabs.j2
     dest: /etc/dnsmasq.d/ocplabs.conf
+  notify:
+    - restart dnsmasq
 - name: Enable DNS Port (TCP Port 53, public zone) firewalld
   firewalld:
     port: "53/tcp"

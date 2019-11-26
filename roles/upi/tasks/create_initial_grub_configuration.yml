@@ -6,6 +6,10 @@
     dest: /var/lib/tftpboot/uefi/grub.cfg-{{ hostvars[item]['ethernet'] }}
   with_items: "{{ groups['masters'] }}"
 - template:
+    src: grub-worker.j2
+    dest: /var/lib/tftpboot/uefi/grub.cfg-{{ hostvars[item]['ethernet'] }}
+  with_items: "{{ groups['workers'] }}"
+- template:
     src: grub-bootstrap.j2
     dest: //var/lib/tftpboot/uefi/grub.cfg-{{ hostvars[item]['ethernet'] }}
   with_items: "{{ groups['bootstrap'] }}"
