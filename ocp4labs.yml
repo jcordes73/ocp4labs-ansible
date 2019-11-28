@@ -2,6 +2,7 @@
   roles:
 #  - storage
 #  - nfs
+#  - ntp
 #  - dns
 #  - haproxy
 #  - dhcp
