@@ -1,0 +1,16 @@
+- name: Ensure ntp is installed
+  yum:
+    name: chrony 
+    state: installed
+- name: Enable NTP service on firewalld
+  firewalld:
+    service: ntp
+    zone: public
+    permanent: yes
+    state: enabled
+- name: Create ntp config
+  template:
+    src: chrony.j2
+    dest: /etc/chrony.conf
+  notify:
+    - restart ntp

@@ -1,0 +1,5 @@
+- name: restart ntp
+  systemd:
+    name: chronyd
+    state: restarted
+    enabled: yes
