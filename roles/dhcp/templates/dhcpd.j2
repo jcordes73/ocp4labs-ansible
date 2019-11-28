@@ -15,6 +15,7 @@ subnet {{ dhcp_subnet }} netmask {{ dhcp_subnet_mask }} {
         option subnet-mask              {{ dhcp_subnet_mask }};
         option domain-search            "{{ ocp4_cluster_domain_name }}";
         option domain-name-servers      {{ hostvars[groups['bastion'][0]]['ansible_host'] }}, {{ dhcp_public_dns }};
+        option ntp-servers              {{ hostvars[groups['bastion'][0]]['ansible_host'] }};
         option time-offset              3600;     # CET
 	range {{ dhcp_range }};
         next-server {{ hostvars[groups['bastion'][0]]['ansible_host'] }};
