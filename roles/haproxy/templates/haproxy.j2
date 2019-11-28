@@ -61,7 +61,7 @@ backend api_server
     server api01 {{ hostvars[host]['ansible_host'] }}:6443 check
 {% endfor %}
 {% for host in groups['masters'] %}
-    server api02 {{ hostvars[host]['ansible_host'] }}:6443 check
+    server api0{{ 1 + loop.index }} {{ hostvars[host]['ansible_host'] }}:6443 check
 {% endfor %}
 
 backend api_int_server
@@ -71,7 +71,7 @@ backend api_int_server
     server api01 {{ hostvars[host]['ansible_host'] }}:6443 check
 {% endfor %}
 {% for host in groups['masters'] %}
-    server api02 {{ hostvars[host]['ansible_host'] }}:6443 check
+    server api0{{ 1 + loop.index }} {{ hostvars[host]['ansible_host'] }}:6443 check
 {% endfor %}
 
 frontend ssl_machineconfig
@@ -85,7 +85,7 @@ backend machineconfig
     server machineconfig01 {{ hostvars[host]['ansible_host'] }}:22623 check
 {% endfor %}
 {% for host in groups['masters'] %}
-    server machineconfig01 {{ hostvars[host]['ansible_host'] }}:22623 check
+    server machineconfig0{{ 1 + loop.index }} {{ hostvars[host]['ansible_host'] }}:22623 check
 {% endfor %}
 
 frontend http
