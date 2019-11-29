@@ -3,5 +3,6 @@
     regexp: ".*{{ hostvars[item]['ansible_host'] }}.*"
     state: absent
   with_flattened:
+  - "{{ groups['bootstrap'] }}"
   - "{{ groups['masters'] }}"
   - "{{ groups['workers'] }}"

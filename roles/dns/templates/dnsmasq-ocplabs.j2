@@ -1,13 +1,10 @@
-# Option 100 - POSIX TZ Code
-dhcp-option=100,"CET-1CEST,M3.5.0,M10.5.0/3"
-# Option 101 - TCode
-dhcp-option=101,"Europe/Berlin"
 strict-order
 domain-needed
 log-queries
-srv-host=_etcd-server-ssl._tcp.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}},etcd-0.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}},2380,0,10
-address=/etcd-0.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['masters'][0]]['ansible_host'] }}
-address=/etcd-member-master.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['masters'][0]]['ansible_host'] }}
+{% for host in groups['masters'] %}
+srv-host=_etcd-server-ssl._tcp.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}},etcd-{{ loop.index0 }}.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}},2380,0,10
+address=/etcd-{{ loop.index0 }}.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[host]['ansible_host'] }}
+{% endfor %}
 address=/api.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['bastion'][0]]['ansible_host'] }}
 address=/api-int.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['bastion'][0]]['ansible_host'] }}
 address=/.apps.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}/{{ hostvars[groups['bastion'][0]]['ansible_host'] }}

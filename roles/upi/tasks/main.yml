@@ -22,6 +22,8 @@
   import_tasks: wait_for_bootstrap_completion.yml
 - name: Create Worker Grub configuration for Bootstrap Node
   import_tasks: create_bootstrap_worker_grub_configuration.yml
+- name: Cleanup known_hosts
+  import_tasks: clean_known_hosts.yml
 - name: Restart Bootstrap Node
   import_tasks: restart_bootstrap_node.yml
 - name: Initialize Worker Nodes

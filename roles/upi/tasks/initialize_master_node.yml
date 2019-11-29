@@ -1,5 +1,6 @@
 - wakeonlan:
-    mac: "{{ hostvars['master']['ethernet'] }}"
+    mac: "{{ hostvars[item]['ethernet'] }}"
     broadcast: 192.168.1.255
+  with_items: "{{ groups['masters'] }}"
 - pause:
     minutes: 2
