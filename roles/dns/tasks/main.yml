@@ -2,8 +2,18 @@
   template:
     src: dnsmasq-ocplabs.j2
     dest: /etc/dnsmasq.d/ocplabs.conf
-  notify:
-    - restart dnsmasq
+- lineinfile:
+    path: /etc/hosts
+    line: "{{ hostvars[item]['ansible_host'] }} {{ hostvars[item]['inventory_hostname'] }}.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}} {{ hostvars[item]['inventory_hostname'] }}"
+    state: present
+  with_flattened:
+  - "{{ groups['bastion'] }}"
+  - "{{ groups['masters'] }}"
+  - "{{ groups['workers'] }}"
+- name: restart dnsmasq
+  service:
+    name: dnsmasq
+    state: restarted
 - name: Enable DNS Port (TCP Port 53, public zone) firewalld
   firewalld:
     port: "53/tcp"

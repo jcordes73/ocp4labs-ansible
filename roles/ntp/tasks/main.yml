@@ -2,15 +2,18 @@
   yum:
     name: chrony 
     state: installed
+- name: Create ntp config
+  template:
+    src: chrony.j2
+    dest: /etc/chrony.conf
+- name: restart ntp
+  systemd:
+    name: chronyd
+    state: restarted
+    enabled: yes
 - name: Enable NTP service on firewalld
   firewalld:
     service: ntp
     zone: public
     permanent: yes
     state: enabled
-- name: Create ntp config
-  template:
-    src: chrony.j2
-    dest: /etc/chrony.conf
-  notify:
-    - restart ntp

@@ -3,10 +3,16 @@
 #  - storage
 #  - nfs
 #  - ntp
-  - dns
-  - haproxy
-  - dhcp
+#  - dns
+#  - haproxy
+#  - dhcp
 #  - tftp
 #  - httpd
 #  - nexus
-  - upi
+  - rhv
+- hosts: rhv
+  roles:
+    - rhv
+- hosts: bastion
+  roles:
+# - upi

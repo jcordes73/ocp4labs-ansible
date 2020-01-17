@@ -6,5 +6,8 @@
   template:
     src: dhcpd.j2
     dest: /etc/dhcp/dhcpd.conf
-  notify:
-    - restart dhcp
+- name: restart dhcp
+  systemd:
+    name: dhcpd
+    state: restarted
+    enabled: yes

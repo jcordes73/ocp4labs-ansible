@@ -1,1 +1,1 @@
-/mnt/container-storage           {{ hostvars['bastion']['ansible_host'] }}/24(rw,sync,no_root_squash,no_subtree_check)
+/mnt/container-storage           *(rw,sync,no_wdelay,no_root_squash,insecure,fsid=0)

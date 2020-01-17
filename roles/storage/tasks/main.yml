@@ -39,11 +39,11 @@
     fstype: xfs
 - name:
   file:
-    path: /mnt/registry-storage
+    path: /mnt/container-storage
     state: directory
 - name: Mount registry storage
   mount:
     src: /dev/mapper/vg_nfs_xfs-nfs_xfs_db
-    path: /mnt/registry-storage
+    path: /mnt/container-storage
     fstype: xfs
     state: mounted

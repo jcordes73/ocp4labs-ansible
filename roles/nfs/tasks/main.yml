@@ -14,7 +14,7 @@
 - name: Copy /etc/exports
   template:
     src: nfs-export.j2
-    dest: /etc/export
+    dest: /etc/exports
 - name: Enable and start NFS services
   systemd:
     name: "{{ item }}"
@@ -24,3 +24,8 @@
   - nfs
   - nfs-lock
   - rpcbind
+- name: Change permission to nfsnobody
+  file:
+    path: /mnt/container-storage
+    owner: nfsnobody
+    group: nfsnobody

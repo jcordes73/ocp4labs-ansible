@@ -41,6 +41,6 @@
     mode: g+r
     recurse: yes
 - shell: chcon -Rv --type=httpd_t /var/www/html/archive
--  selinux:
+- selinux:
     policy: targeted
     state: enforcing

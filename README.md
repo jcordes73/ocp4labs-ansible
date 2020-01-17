@@ -89,6 +89,16 @@ node03
 [bootstrap]
 bootstrap ansible_host=<node-ip> ethernet="<node-mac>"
 ```
+### Create SSH keys
+
+ssh-keygen -f ~/.ssh/id_ocplabs
+
+cat ~/.ssh/authorized_keys
+<Content of ~/.ssh/id_ocplabs.pub>
+
+cat ~/.ssh/config 
+IdentityFile ~/.ssh/id_ocplabs
+
 ### Run Ansible playbook
 Now you are ready to run the *Ansible* playbook as follows:
 
