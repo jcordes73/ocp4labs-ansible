@@ -14,7 +14,7 @@ The lab environment consists of the following parts:
 - USB keyboard and mouse connected to KVM switch
 - 1 toolbox (to contain the lab)
 
-<img src="images/ocp4labs_assembled.jpg"  width="400" height="200" />
+<img src="images/ocp4labs_assembled.jpg"  width="400" height="300" />
 
 ## Steps
 ### Setup WLAN router
@@ -61,10 +61,11 @@ ocp4_release_name=ocp-release
 ocp4_type=bare-metal
 ocp4_cluster_name=<cluster-name>
 ocp4_cluster_domain_name=<cluster-domain-name>
-rhcos_release=4.2
+rhcos_release=4.2.0
 
 # Taken from https://cloud.redhat.com/openshift/token
 ocp4_offline_access_token=<offline-access-token>
+
 nexus_version=3.19.1-01
 nexus_port=5555
 
