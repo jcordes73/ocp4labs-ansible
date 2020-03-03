@@ -1,6 +1,3 @@
-- copy:
-    src: grub.cfg
-    dest: /var/lib/tftpboot/uefi
 - template:
     src: grub-master.j2
     dest: /var/lib/tftpboot/uefi/grub.cfg-{{ hostvars[item]['ethernet'] }}

@@ -1,3 +1,5 @@
+- name: Include global variables
+  include_vars: ../../all/defaults/main.yml
 - name: Create Nexus Working Directory on detached storage
   file:
     path: /mnt/detached-storage/sonatype-work
@@ -11,6 +13,7 @@
   unarchive:
     src: http://download.sonatype.com/nexus/3/nexus-{{ nexus_version }}-unix.tar.gz
     dest: /opt
+    remote_src: yes
 - name: Create symlink for Nexus current version
   file:
     src: /opt/nexus-{{ nexus_version }}
@@ -24,87 +27,131 @@
     name: nexus
     comment: Nexus
     groups: nexus
+- name: Delete existing Nexus files in etc directrory
+  file:
+    path: /opt/nexus/etc/ssl/{{ item }}
+    state: absent
+  with_items:
+  - keystore.jks
+  - jetty.csr
+  - openssl.conf
+  - cakey.pem
+  - caroot.cer
+  - serial.txt
+  - JettyTestCA.cer
 - name: Create Self-Signed Certificate
   shell:
-    cmd: "keytool -keystore /opt/nexus/etc/ssl/keystore.jks -alias jetty -genkey -keyalg RSA -storepass 'password' -keypass 'password' -dname \"CN=bastion.{{ ocp4_cluster_domain_name }}, OU=ocplabs, O={{ ocp4_cluster_domain_name }}, C=SomeCountry\" -ext SAN=dns:bastion.{{ ocp4_cluster_domain_name }},dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}"
-   creates: /opt/nexus/etc/ssl/keystore.jks
+    cmd: "keytool -keystore /opt/nexus/etc/ssl/keystore.jks -alias jetty -genkey -keyalg RSA -storepass 'password' -keypass 'password' -dname \"CN=bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }}, OU=ocplabs, O={{ ocp4_cluster_domain_name }}, C=DE\" -ext \"SAN=dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}\""
+    creates: /opt/nexus/etc/ssl/keystore.jks
 - name: Create Certificate Signing Request
   shell:
-    cmd: "keytool -certreq -alias jetty -keystore /opt/nexus/etc/ssl/keystore.jks -file {{ ocp4_home }}/jetty.csr  -storepass 'password' -keypass 'password' -ext SAN=dns:bastion.{{ ocp4_cluster_domain_name }},dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}"
-    creates: "{{ ocp4_home }}/jetty.csr"
+    cmd: "keytool -certreq -alias jetty -keystore /opt/nexus/etc/ssl/keystore.jks -file /opt/nexus/etc/ssl/jetty.csr  -storepass 'password' -keypass 'password' -ext SAN=dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}"
+    creates: "/opt/nexus/etc/ssl/jetty.csr"
 - name: Create OpenSSL config
   template:
     src: openssl.j2
-    dest: "{{ ocp4_home }}/openssl.conf"
+    dest: "/opt/nexus/etc/ssl/openssl.conf"
 - name: Create CA Request key and certificate
   shell:
-    cmd: "openssl req -new -keyout {{ ocp4_home }}/cakey.pem -out {{ ocp4_home }}/careq.pem"
-    creates: "{{ ocp4_home }}/cakey.pem"
+    cmd: "openssl req -new -keyout /opt/nexus/etc/ssl/cakey.pem -out /opt/nexus/etc/ssl/careq.pem -passout pass:password -subj \"/CN=bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }}/OU=ocplabs/O={{ ocp4_cluster_domain_name }}/C=DE\""
+    creates: "/opt/nexus/etc/ssl/cakey.pem"
 - name: Create Root CA
   shell:
-    cmd: "openssl x509 -signkey {{ ocp4_home }}/cakey.pem -req -days 3650 -in {{ ocp4_home }}/careq.pem -out {{ ocp4_home }}/caroot.cer -extfile {{ ocp4_home }}/openssl.conf -extensions v3_ca"
-    creates: "{{ ocp4_home }}/caroot.cer"
+    cmd: "openssl x509 -signkey /opt/nexus/etc/ssl/cakey.pem -req -days 3650 -in /opt/nexus/etc/ssl/careq.pem -out /opt/nexus/etc/ssl/caroot.cer -extfile /opt/nexus/etc/ssl/openssl.conf -extensions v3_ca -passin pass:password"
+    creates: "/opt/nexus/etc/ssl/caroot.cer"
 - name: Create Serial
   shell:
-    cmd: "echo 1234 > {{ ocp4_home }}/serial.txt"
-    creates: "{{ ocp4_home }}/serial.txt"
+    cmd: "echo 1234 > /opt/nexus/etc/ssl/serial.txt"
+    creates: "/opt/nexus/etc/ssl/serial.txt"
 - name: Create Jetty Test CA
-  shell: "openssl x509 -CA {{ ocp4_home }}/caroot.cer" -CAkey {{ ocp4_home }}/cakey.pem -CAserial {{ ocp4_home }}/serial.txt -req -in {{ ocp4_home }}/jetty.csr -out {{ ocp4_home }}/JettyTestCA.cer -days 365 -extfile {{ ocp4_home }}/openssl.conf -extensions req_ext
-    creates: "{{ ocp4_home }}/JettyTestCA.cer"
+  shell:
+    cmd: "openssl x509 -CA /opt/nexus/etc/ssl/caroot.cer -CAkey /opt/nexus/etc/ssl/cakey.pem -CAserial /opt/nexus/etc/ssl/serial.txt -req -in /opt/nexus/etc/ssl/jetty.csr -out /opt/nexus/etc/ssl/JettyTestCA.cer -days 365 -extfile /opt/nexus/etc/ssl/openssl.conf -extensions req_ext -passin pass:password"
+    creates: "/opt/nexus/etc/ssl/JettyTestCA.cer"
 - name: Import Test CA into keystore
-  shell: "keytool -import -alias TestCA -file {{ ocp4_home }}/caroot.cer -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password' -keypass 'password'"
+  shell:
+    cmd: "keytool -import -alias TestCA -file /opt/nexus/etc/ssl/caroot.cer -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password' -keypass 'password' -noprompt"
 - name: Import Jetty Test CA into keystore
-  shell: "keytool -import -alias jetty -file JettyTestCA.cer -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password' -keypass 'password' -ext SAN=dns:bastion.{{ ocp4_cluster_domain_name }},dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}"
-- name: Copy nexus.properties
+  shell:
+    cmd: "keytool -import -alias jetty -file /opt/nexus/etc/ssl/JettyTestCA.cer -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password' -keypass 'password' -ext SAN=dns:bastion.{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }},ip:{{ hostvars['bastion']['ansible_host'] }}"
+- name: Create etc folder
   file:
+    path: /opt/sonatype-work/nexus3/etc
+    state: directory
+- name: Copy nexus.properties
+  copy:
     src: nexus.properties
-    dest: /opt/sonatype-work/nexus3/etc/nexus.properties
+    dest: /opt/sonatype-work/nexus3/etc
 - name: Change Nexus install directory ownershirp
   file:
     path: /opt/nexus
     owner: nexus
     group: nexus
     recurse: yes
+    state: directory
 - name: Change Nexus working directory ownership
   file:
     path: /opt/sonatype-work
     owner: nexus
     group: nexus
     recurse: yes
-- name: Enable Nexus Port (Port 8081, public zone) firewalld
-  firewalld:
-    port: "8081/tcp"
-    zone: public
-    permanent: yes
-    state: enabled
-- name: Enable Container Registry (Port 5555, internal zone) firewalld
+    state: directory
+- name: Enable Nexus Port (Port {{ nexus_port }}, public zone) firewalld
   firewalld:
     port: "{{ nexus_port }}/tcp"
+    zone: public
+    permanent: yes
+    immediate: yes
+    state: enabled
+- name: Enable Container Registry (Port {{ nexus_docker_port }}, internal zone) firewalld
+  firewalld:
+    port: "{{ nexus_docker_port }}/tcp"
     zone: internal
     permanent: yes
+    immediate: yes
     state: enabled
-- name: Enable Container Registry (Port 5555, public zone) firewalld
+- name: Enable Container Registry (Port {{ nexus_docker_port }}, public zone) firewalld
   firewalld:
-    port: "{{ nexus_port }}/tcp"
+    port: "{{ nexus_docker_port }}/tcp"
     zone: public
     permanent: yes
+    immediate: yes
     state: enabled
 - name: Create systemd service
-  file:
+  copy:
     src: nexus.service
     dest: /etc/systemd/system/nexus.service
-- name: Enable and start TFTP service
+- name: Enable and start Nexus service
   systemd:
     name: nexus.service
     state: started
     enabled: yes
 - name: Extract Nexus certificate
   shell:
-    cmd: "keytool -export -alias jetty -file {{ ocp4_home }}/nexus.der -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password'"
-    creates: "{{ ocp4_home }}/nexus.der"
+    cmd: "keytool -export -alias jetty -file /opt/nexus/etc/ssl/nexus.der -keystore /opt/nexus/etc/ssl/keystore.jks -storepass 'password'"
+    creates: "/opt/nexus/etc/ssl/nexus.der"
 - name: Convert Nexus certificate
   shell:
-    cmd: "openssl x509 -inform der -in {{ ocp4_home }}/nexus.der -out /etc/pki/ca-trust/source/anchors/nexus.crt"
+    cmd: "openssl x509 -inform der -in /opt/nexus/etc/ssl/nexus.der -out /etc/pki/ca-trust/source/anchors/nexus.crt"
     creates: /etc/pki/ca-trust/source/anchors/nexus.crt
 - name: Update CA trust
   shell: update-ca-trust extract
+- name:
+  file:
+    path: /mnt/detached-storage/nexus-blob
+    state: directory
+    owner: nexus
+    group: nexus
+- name: Change admin password
+  shell:
+    cmd: curl -X PUT -u "admin:$(cat /mnt/detached-storage/sonatype-work/nexus3/admin.password)" "http://{{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/service/rest/beta/security/users/admin/change-password" -H "accept: application/json" -H "Content-Type: text/plain" -d "admin123"
+- name: Create Blob-Storage
+  shell:
+    cmd: curl -X POST - "admin:admin123" "http://{{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/service/rest/beta/blobstores/file" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"path\": \"/mnt/detached-storage/nexus-blob\", \"name\": \"ocp4labs\"}
+- name: Create Docker-Repos
+  shell:
+    cmd: curl -X POST -u "admin:admin123" "http://{{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/service/rest/beta/repositories/docker/hosted" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"name\": \"ocp4labs\", \"online\": true, \"storage\": { \"blobStoreName\": \"default\", \"strictContentTypeValidation\": true, \"writePolicy\": \"redeploy\" }, \"docker\": { \"v1Enabled\": false, \"forceBasicAuth\": true, \"httpPort\": 5000, \"httpsPort\": {{ nexus_docker_port }} }}"
+- name: Create symlink to logs
+  file:
+    src: /opt/sonatype-work/nexus3/log
+    dest: /var/log/nexus
+    state: link

@@ -1,3 +1,3 @@
 - pause:
     minutes: 1
-- shell: "{{ ocp4_home }}/bin/oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{\"spec\":{\"storage\":{\"nfs\":{\"path\":\"/image-registry\",\"server\":\"{{hostvars['bastion']['ansible_host']}}\"}}}}' --kubeconfig={{ ocp4_home }}/bare-metal/auth/kubeconfig"
+- shell: "{{ ocp4_home }}/bin/oc patch configs.imageregistry.operator.openshift.io/cluster --type merge --patch '{\"spec\":{\"storage\":{\"nfs\":{\"path\":\"/image-registry\",\"server\":\"{{hostvars['bastion']['ansible_host']}}\"}}}}' --kubeconfig={{ ocp4_home }}/{{ ocp4_type }}/auth/kubeconfig"

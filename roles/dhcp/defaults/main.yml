@@ -1,5 +1,5 @@
 dhcp_subnet: "192.168.1.0"
 dhcp_subnet_mask: "255.255.255.0"
-dhcp_routers: "192.168.1.100"
-dhcp_range: "192.168.1.107 192.168.1.126"
+dhcp_routers: "192.168.1.1"
+dhcp_range: "192.168.1.119 192.168.1.126"
 dhcp_public_dns: "8.8.8.8"

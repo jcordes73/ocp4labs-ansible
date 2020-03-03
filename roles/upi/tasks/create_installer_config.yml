@@ -16,12 +16,15 @@
   register: ssh_key_output
 - set_fact:
     ssh_key: "{{ ssh_key_output.stdout }}"
-- shell: "openssl s_client -showcerts -servername {{ hostvars['bastion']['ansible_host'] }} -connect {{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }} </dev/null 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sed 's/\\(.*\\)/  \\1/g'"
+- shell: "openssl s_client -showcerts -servername {{ hostvars['bastion']['ansible_host'] }} -connect {{ hostvars['bastion']['ansible_host'] }}:{{ nexus_docker_port }} </dev/null 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sed 's/\\(.*\\)/  \\1/g'"
   register: additional_trustbundle_output
 - set_fact:
     additional_trustbundle: "{{ additional_trustbundle_output.stdout }}"
 - template:
     src: install-config.j2
     dest: "{{ ocp4_home }}/bare-metal/install-config.yaml"
+- template:
+    src: install-config.j2
+    dest: "{{ ocp4_home }}/bare-metal/install-config.yaml.ori"
 - shell: "{{ ocp4_home }}/bin/openshift-install --dir {{ ocp4_home }}/bare-metal create manifests"
 - shell: "{{ ocp4_home }}/bin/openshift-install --dir {{ ocp4_home }}/bare-metal create ignition-configs"

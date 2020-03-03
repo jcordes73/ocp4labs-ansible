@@ -1,0 +1,24 @@
+- shell:
+    cmd: virt-install --name {{ item }} --memory {{ bootstrap_node_memory }} --vcpus {{ bootstrap_node_cpu }} --cpu {{ cpu_model }} --disk size={{ bootstrap_node_disksize }},format=raw,bus=virtio,io=native,cache=none --hvm --network bridge=br0,mac={{ hostvars[item]['ethernet'] }},model=virtio --pxe --boot uefi --os-type=linux --os-variant {{ os_variant }} --keymap=de-de
+  delegate_to: "{{ hostvars[item]['kvm_host'] }}"
+  with_items: "{{ groups['bootstrap'] }}"
+  register: create_bootstrap_instance
+  async: 900
+  poll: 0
+- shell:
+   cmd: virt-install --name {{ item }} --memory {{ master_node_memory }} --vcpus {{ master_node_cpu }} --cpu {{ cpu_model }} --disk size={{ master_node_disksize }},format=raw,bus=virtio,io=native,cache=none --hvm --network bridge=br0,mac={{ hostvars[item]['ethernet'] }},model=virtio --pxe --boot uefi --os-type=linux --os-variant {{ os_variant }} --keymap=de-de
+  delegate_to: "{{ hostvars[item]['kvm_host'] }}"
+  with_items: "{{ groups['masters'] }}"
+  register: create_master_instances
+  async: 900
+  poll: 0
+- async_status:
+    jid: "{{ item.ansible_job_id }}"
+  delegate_to: "{{ hostvars[item.item]['kvm_host'] }}"
+  register: jobs
+  until: jobs.finished
+  delay: 10
+  retries: 90
+  with_flattened:
+  - "{{ create_master_instances.results }}"
+  - "{{ create_bootstrap_instance.results }}"

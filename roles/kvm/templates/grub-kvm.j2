@@ -1,0 +1,13 @@
+default=0
+timeout=5
+
+menuentry 'Install Red Hat KVM for OpenShift {{ ocp4_release }}' --class fedora --class gnu-linux --class gnu --class os {
+        insmod net
+        insmod efinet
+        insmod tftp
+        set net_default_server={{ hostvars['bastion']['ansible_host'] }}
+        echo 'Loading Linux ...'
+        linuxefi (tftp)/images/RHEL-8.1/vmlinuz ip=dhcp console=tty0 console=ttyS0 rd.neednet=1 nameserver={{ hostvars['bastion']['ansible_host'] }} inst.repo=http://{{ hostvars['bastion']['ansible_host'] }}/RedHat-RHEL/8.1 inst.ks=http://{{ hostvars['bastion']['ansible_host'] }}/RedHat-RHEL/anaconda-ks-kvm.cfg consoleblank=0 BOOTIF=${net_efinet0_dhcp_mac}
+        echo 'Loading initial ramdisk ...'
+        initrdefi (tftp)/images/RHEL-8.1/initrd.img
+}

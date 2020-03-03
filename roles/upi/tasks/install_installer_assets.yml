@@ -1,8 +1,11 @@
 - selinux:
     state: disabled
+- file:
+    path: /var/www/html/RedHat-CoreOS
+    state: directory
 - copy:
     src: "{{ ocp4_home }}/bare-metal/{{ item }}"
-    dest: /var/www/html/archive/RedHat-CoreOS
+    dest: /var/www/html/RedHat-CoreOS
     remote_src: yes
   with_items:
   - master.ign
@@ -11,29 +14,41 @@
 - set_fact:
     rhcos_minor_release: "{{ rhcos_release | regex_replace('(\\d+)\\.(\\d+)\\..*','\\1.\\2') }}"
 - get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_minor_release}}/{{rhcos_release}}/rhcos-{{rhcos_release}}-x86_64-installer-kernel
+    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_minor_release}}/{{rhcos_minor_release}}.0/rhcos-{{rhcos_minor_release}}.0-x86_64-installer-kernel
     dest: /var/lib/tftpboot/images/RedHat-CoreOS/vmlinuz
+  retries: 2
+  delay: 3
+  register: result
+  until: result is succeeded 
 - get_url:
-    url:  https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_minor_release}}/{{rhcos_release}}/rhcos-{{rhcos_release}}-x86_64-installer-initramfs.img
+    url:  https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_minor_release}}/{{rhcos_minor_release}}.0/rhcos-{{rhcos_minor_release}}.0-x86_64-installer-initramfs.img
     dest: /var/lib/tftpboot/images/RedHat-CoreOS/initramfs.img
+  retries: 2
+  delay: 3
+  register: result
+  until: result is succeeded
 - get_url:
-    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_minor_release}}/{{rhcos_release}}/rhcos-{{rhcos_release}}-x86_64-metal-uefi.raw.gz
-    dest: /var/www/html/archive/RedHat-CoreOS/rhcos-{{rhcos_release}}-metal-uefi.raw.gz
+    url: https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/{{rhcos_minor_release}}/{{rhcos_minor_release}}.0/rhcos-{{rhcos_minor_release}}.0-x86_64-metal.raw.gz
+    dest: /var/www/html/RedHat-CoreOS/rhcos-{{rhcos_release}}-metal.raw.gz
+  retries: 2
+  delay: 3
+  register: result
+  until: result is succeeded
 - file:
-    path: /var/www/html/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz
+    path: /var/www/html/RedHat-CoreOS/rhcos-metal.raw.gz
     state: absent
 - file:
-     src: /var/www/html/archive/RedHat-CoreOS/rhcos-{{rhcos_release}}-metal-uefi.raw.gz
-     dest: /var/www/html/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz
+     src: /var/www/html/RedHat-CoreOS/rhcos-{{rhcos_release}}-metal.raw.gz
+     dest: /var/www/html/RedHat-CoreOS/rhcos-metal.raw.gz
      state: link
      remote_src: yes
 - file:
-    path: /var/www/html/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz.sha256sum
+    path: /var/www/html/RedHat-CoreOS/rhcos-metal.raw.gz.sha256sum
     state: absent
-- shell: sha256sum /var/www/html/archive/RedHat-CoreOS/rhcos-{{rhcos_release}}-metal-uefi.raw.gz > /var/www/html/archive/RedHat-CoreOS/rhcos-{{ rhcos_release }}-metal-uefi.raw.gz.sha256sum
+- shell: sha256sum /var/www/html/RedHat-CoreOS/rhcos-{{rhcos_release}}-metal.raw.gz > /var/www/html/RedHat-CoreOS/rhcos-{{ rhcos_release }}-metal.raw.gz.sha256sum
 - file:
-    src: /var/www/html/archive/RedHat-CoreOS/rhcos-{{rhcos_release}}-metal-uefi.raw.gz.sha256sum
-    dest: /var/www/html/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz.sha256sum
+    src: /var/www/html/RedHat-CoreOS/rhcos-{{rhcos_release}}-metal.raw.gz.sha256sum
+    dest: /var/www/html/RedHat-CoreOS/rhcos-metal.raw.gz.sha256sum
     state: link
     remote_src: yes
 - file:

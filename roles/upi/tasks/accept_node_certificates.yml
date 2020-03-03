@@ -1,5 +1,5 @@
-- shell: "{{ ocp4_home }}/bin/oc get csr --kubeconfig={{ ocp4_home }}/bare-metal/auth/kubeconfig --no-headers=true | awk '{print $1}' | xargs {{ ocp4_home }}/bin/oc adm certificate approve --kubeconfig={{ ocp4_home }}/bare-metal/auth/kubeconfig | wc -l"
+- shell: "{{ ocp4_home }}/bin/oc get csr --kubeconfig={{ ocp4_home }}/{{ ocp4_type }}/auth/kubeconfig --no-headers=true | awk '{print $1}' | xargs {{ ocp4_home }}/bin/oc adm certificate approve --kubeconfig={{ ocp4_home }}/{{ ocp4_type }}/auth/kubeconfig | wc -l"
   register: certificate_approved_output
-  until: certificate_approved_output.stdout == "{{ 2*(groups['masters'] | length + groups['workers'] | length) }}"
+  until: certificate_approved_output.stdout >= "{{ 2*(groups['masters'] | length + groups['workers'] | length) }}"
   retries: 60
   delay: 20

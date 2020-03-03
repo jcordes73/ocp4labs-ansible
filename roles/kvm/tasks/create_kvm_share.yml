@@ -1,0 +1,62 @@
+- parted: device=/dev/sdb unit=MiB
+  register: sdb_info
+- debug:
+    var: sdb_info
+- shell:
+    cmd: |
+      virsh list --name | xargs -I{} virsh destroy {}
+      virsh list --name | xargs -I{} virsh undefine {}
+      rm -rf /var/lib/libvirt/images/*
+  ignore_errors: yes
+  retries: 3
+- systemd:
+    name: libvirtd
+    state: stopped
+- mount:
+    path: /var/lib/libvirt/images
+    state: unmounted
+  ignore_errors: yes
+  retries: 3
+- lvol:
+    vg: vg_kvm_xfs
+    lv: kvm_xfs_db
+    state: absent
+    force: yes
+- lvg:
+    vg: vg_kvm_xfs
+    state: absent
+    force: true
+- parted:
+    device: /dev/sdb
+    number: '{{ item.num }}'
+    state: absent
+  loop: '{{ sdb_info.partitions }}'
+- parted:
+    device: /dev/sdb
+    number: 1
+    flags: [ lvm ]
+    state: present
+- lvg:
+    vg: vg_kvm_xfs
+    pvs: /dev/sdb1
+    state: present
+- lvol:
+    vg: vg_kvm_xfs
+    lv: kvm_xfs_db
+    pvs: /dev/sdb1
+    size: +100%PVS
+    resizefs: yes
+- filesystem:
+    dev: /dev/vg_kvm_xfs/kvm_xfs_db
+    fstype: xfs
+- file:
+    path: /var/lib/libvirt/images
+    state: directory
+- mount:
+    src: /dev/mapper/vg_kvm_xfs-kvm_xfs_db
+    path: /var/lib/libvirt/images
+    fstype: xfs
+    state: mounted
+- systemd:
+    name: libvirtd
+    state: started

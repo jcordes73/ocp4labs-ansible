@@ -1,0 +1,10 @@
+- yum:
+    name: rsyslog
+    state: installed
+- copy:
+    src: rsyslog-haproxy.conf
+    dest: /etc/rsyslog.d/haproxy.conf
+- systemd:
+    name: rsyslog
+    state: restarted
+    enabled: yes

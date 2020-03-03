@@ -1,0 +1,36 @@
+- name: Install Squid Server
+  yum:
+    name: squid
+    state: present
+- name: Enable Squid service on port 3128 on firewalld
+  firewalld:
+    zone: public
+    port: 3128/tcp
+    permanent: yes
+    immediate: yes
+    state: enabled
+- name: Copy squid.conf listen to port 3128
+  template:
+    src: squid.conf.j2
+    dest: /etc/squid/squid.conf
+- name: Create Squid directory
+  file:
+    path: /mnt/detached-storage/squid
+    owner: root
+    group: squid
+    state: directory
+    mode: '0775'
+- name: Allow Squid to modify files in /mnt/detached-storage/squid
+  sefcontext:
+    target: '/mnt/detached-storage/squid(/.*)?'
+    setype: squid_cache_t
+    state: present
+- name: Apply new SELinux file context to filesystem
+  command: restorecon -irv /mnt/detached-storage/squid
+- name: Enable cache_swap_mod
+  shell: ausearch -c cache_swap.sh | audit2allow -M cache_swap_mod ; semodule -X 300 -i cache_swap_mod.pp
+- name: Enable and start Squid service
+  systemd:
+    name: squid
+    state: restarted
+    enabled: yes

@@ -1,7 +1,12 @@
-- raw: sudo systemctl poweroff
-  delegate_to: "{{ hostvars['bootstrap']['ansible_host'] }}"
-  remote_user: core
-  ignore_errors: yes
-- meta: clear_host_errors
-- pause:
-    minutes: 2
+- shell:
+    cmd: |
+      virsh destroy {{ item }}
+      virsh undefine {{ item  }} --nvram
+      rm -f /var/lib/libvirt/images/bootstrap*
+  delegate_to: "{{ hostvars[item]['kvm_host'] }}"
+  with_items: "{{ groups['bootstrap'] }}"
+- file:
+    path: /var/lib/libvirt/images/{{ item }}.img
+    state: absent
+  delegate_to: "{{ hostvars[item]['kvm_host'] }}"
+  with_items: "{{ groups['bootstrap'] }}" 

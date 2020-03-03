@@ -7,7 +7,7 @@ menuentry 'Install Red Hat CoreOS for OpenShift {{ ocp4_release }} (Master)' --c
         set net_default_server={{ hostvars['bastion']['ansible_host'] }}
         net_bootp
         echo 'Loading Linux ...'
-        linuxefi (tftp)/images/RedHat-CoreOS/vmlinuz ip=dhcp console=tty0 console=ttyS0 rd.neednet=1 nameserver={{ hostvars['bastion']['ansible_host'] }} coreos.inst=yes coreos.inst.install_dev=sda coreos.inst.image_url=http://{{ hostvars['bastion']['ansible_host'] }}/archive/RedHat-CoreOS/rhcos-metal-uefi.raw.gz coreos.inst.ignition_url=http://{{ hostvars['bastion']['ansible_host'] }}/archive/RedHat-CoreOS/master.ign consoleblank=0
+        linuxefi (tftp)/images/RedHat-CoreOS/vmlinuz ip=dhcp console=tty0 console=ttyS0 rd.neednet=1 nameserver={{ hostvars['bastion']['ansible_host'] }} coreos.inst=yes coreos.inst.install_dev=vda coreos.inst.image_url=http://{{ hostvars['bastion']['ansible_host'] }}/RedHat-CoreOS/rhcos-metal.raw.gz coreos.inst.ignition_url=http://{{ hostvars['bastion']['ansible_host'] }}/RedHat-CoreOS/master.ign consoleblank=0
         echo 'Loading initial ramdisk ...'
         initrdefi (tftp)/images/RedHat-CoreOS/initramfs.img
 }

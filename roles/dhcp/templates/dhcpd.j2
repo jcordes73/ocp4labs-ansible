@@ -13,7 +13,7 @@ option architecture-type code 93 = unsigned integer 16;
 subnet {{ dhcp_subnet }} netmask {{ dhcp_subnet_mask }} {
         option routers                  {{ dhcp_routers }};
         option subnet-mask              {{ dhcp_subnet_mask }};
-        option domain-search            "{{ ocp4_cluster_domain_name }}";
+        option domain-search            "{{ ocp4_cluster_name }}.{{ ocp4_cluster_domain_name }}";
         option domain-name-servers      {{ hostvars[groups['bastion'][0]]['ansible_host'] }}, {{ dhcp_public_dns }};
         option ntp-servers              {{ hostvars[groups['bastion'][0]]['ansible_host'] }};
         option time-offset              3600;     # CET
@@ -24,13 +24,21 @@ subnet {{ dhcp_subnet }} netmask {{ dhcp_subnet_mask }} {
 	  match if substring (option vendor-class-identifier, 0, 9) = "PXEClient";
         
           if option architecture-type = 00:07 {
-	    filename "uefi/shim.efi";
+	    filename "uefi/BOOTX64.efi";
 	  } else {
 	    filename "pxelinux/pxelinux.0";
           }
         }
 }
 
+{% for host in groups['kvm'] %}
+host {{ hostvars[host]['inventory_hostname'] }} {
+  option host-name "{{ hostvars[host]['inventory_hostname'] }}.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}";
+  hardware ethernet {{ hostvars[host]['ethernet'] }};
+  fixed-address {{ hostvars[host]['ansible_host'] }};
+}
+
+{% endfor %}
 {% for host in groups['masters'] %}
 host {{ hostvars[host]['inventory_hostname'] }} {
   option host-name "{{ hostvars[host]['inventory_hostname'] }}.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}";

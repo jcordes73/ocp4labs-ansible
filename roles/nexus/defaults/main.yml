@@ -1,0 +1,3 @@
+nexus_version: 3.20.1-01
+nexus_port: 8081
+nexus_docker_port: 5555

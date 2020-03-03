@@ -1,1 +1,1 @@
-- shell: "{{ ocp4_home }}/bin/openshift-install --dir {{ ocp4_home }}/bare-metal wait-for bootstrap-complete"
+- shell: "{{ ocp4_home }}/bin/openshift-install --dir {{ ocp4_home }}/{{ ocp4_type }} wait-for bootstrap-complete"

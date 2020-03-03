@@ -32,7 +32,7 @@ In order for automation to work you need to configure the BIOS of the master and
 - Wake-On-LAN (usually hidden in ACPI settings)
 
 ### Setup Bastion host
-Create a *Bastion* host with **Red Hat Enterprise Linux 7.5** (or higher) and use subscription-manager to entitle the system.
+Create a *Bastion* host with **Red Hat Enterprise Linux 8.1** (or higher) and use subscription-manager to entitle the system.
 
 Also you need to install *Ansible* via
 ```yum install -y ansible```
@@ -48,6 +48,7 @@ Now create an *Ansible* inventory file named *ocp4labs-inventory* with the follo
 ```
 [ocp4labs:children]
 bastion
+kvm
 masters
 workers
 bootstrap
@@ -56,39 +57,45 @@ bootstrap
 host_key_checking = False
 ansible_ssh_private_key_file=~/.ssh/id_ocplabs
 ansible_ssh_user=root
-ocp4_release=4.2.0
+ocp4_release=4.3.3
 ocp4_release_name=ocp-release
 ocp4_type=bare-metal
 ocp4_cluster_name=<cluster-name>
 ocp4_cluster_domain_name=<cluster-domain-name>
-rhcos_release=4.2.0
+rhcos_release=4.3.0
 
 # Taken from https://cloud.redhat.com/openshift/token
 ocp4_offline_access_token=<offline-access-token>
 
-nexus_version=3.19.1-01
-nexus_port=5555
-
 [all]
-master ansible_host=<node-ip> ethernet="<node-mac>"
-node01 ansible_host=<node-ip> ethernet="<node-mac>"
-node02 ansible_host=<node-ip> ethernet="<node-mac>"
-node03 ansible_host=<node-ip> ethernet="<node-mac>"
+master01 ansible_host=<node-ip> ethernet="<node-mac>" kvm_host=kvm01
+master02 ansible_host=<node-ip> ethernet="<node-mac>" kvm_host=kvm02
+master03 ansible_host=<node-ip> ethernet="<node-mac>" kvm_host=kvm03
+worker01 ansible_host=<node-ip> ethernet="<node-mac>" kvm_host=kvm01
+worker02 ansible_host=<node-ip> ethernet="<node-mac>" kvm_host=kvm02
+worker03 ansible_host=<node-ip> ethernet="<node-mac>" kvm_host=kvm03
 bastion ansible_host=<node-ip> ethernet="<node-mac>"
 
 [bastion]
 bastion
 
+[kvm]
+kvm01
+kvm02
+kvm03
+
 [masters]
-master
+master01
+master02
+master03
 
 [workers]
-node01
-node02
-node03
+worker01
+worker02
+worker03
 
 [bootstrap]
-bootstrap ansible_host=<node-ip> ethernet="<node-mac>"
+worker01
 ```
 ### Create SSH keys
 

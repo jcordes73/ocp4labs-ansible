@@ -1,11 +1,10 @@
 - name: Install TFTP Server
   yum:
-    name: "{{ packages }}"
+    name:
+      - tftp-server
+      - tftp
+      - xinetd
     state: present
-  vars:
-    packages:
-    - tftp-server
-    - tftp
 - name: Enable TFTP service on firewalld
   firewalld:
     service: tftp
@@ -14,11 +13,24 @@
 - name: Create directory for UEFI
   file:
     path: /var/lib/tftpboot/uefi
+    state: directory
     mode: '0755'
-- name: Copy UEFI SHIM to TFTP Boot
+- name: Create image directory
+  file:
+    path: /var/lib/tftpboot/images/RHEL-8.1
+    state: directory
+- name: Copy vmlinuz
   copy:
-    src: /boot/efi/EFI/redhat/shim.efi
-    dest: /var/lib/tftpboot/uefi
+    src: /boot/vmlinuz-4.18.0-147.el8.x86_64
+    dest: /var/lib/tftpboot/images/RHEL-8.1/vmlinuz
+- name: Copy initrd
+  copy:
+    src: /boot/initramfs-4.18.0-147.el8.x86_64.img
+    dest: /var/lib/tftpboot/images/RHEL-8.1/initrd.img
+- name: Copy UEFI BOOTX64.EFI to TFTP Boot
+  copy:
+    src: /boot/efi/EFI/BOOT/BOOTX64.EFI
+    dest: /var/lib/tftpboot/uefi/BOOTX64.efi
     remote_src: yes
     mode: '755'
 - name: Copy UEFI Grubx to TFTP Boot 
@@ -35,5 +47,10 @@
 - name: Enable and start TFTP service
   systemd:
     name: tftp
-    state: started
+    state: restarted
+    enabled: yes
+- name: Enable and start XINETD service
+  systemd:
+    name: xinetd
+    state: restarted
     enabled: yes

@@ -1,18 +1,26 @@
-- hosts: bastion
-  roles:
+#- hosts: bastion
+#  roles:
+#  - dns
+#  - ntp
+#  - tftp
+#  - dhcp
 #  - storage
 #  - nfs
-#  - ntp
-#  - dns
-#  - haproxy
-#  - dhcp
-#  - tftp
 #  - httpd
+#  - rsyslog
+#  - haproxy
+#  - squid
+#  - java
 #  - nexus
-  - rhv
-- hosts: rhv
+#- hosts: bastion
+#  roles:
+#  - kvm
+- hosts: kvm
   roles:
-    - rhv
+  - kvm
 - hosts: bastion
+  environment:
+    http_proxy: "http://{{ hostvars['bastion']['ansible_host'] }}:3128"
+    no_proxy: ".{{ ocp4_cluster_domain_name }},192.168.0.0/16"
   roles:
-# - upi
+  - upi

@@ -9,8 +9,7 @@
 # Global settings
 #---------------------------------------------------------------------
 global
-    log /dev/log local0
-    log /dev/log local1 debug
+    log 127.0.0.1:514 local0
 
     chroot      /var/lib/haproxy
     pidfile     /var/run/haproxy.pid
@@ -29,7 +28,7 @@ global
 defaults
     mode                    tcp
     log                     global
-    option                  tcplog
+    option                  httplog
     option                  dontlognull
     option http-server-close
     option                  redispatch
@@ -45,8 +44,9 @@ defaults
 
 frontend ssl-apiserver
     bind *:6443
+    log global
     mode tcp
-    option tcplog
+    option httplog
     tcp-request inspect-delay 5s
     tcp-request content accept if { req.ssl_hello_type 1 }
     acl acl_api_server req.ssl_sni -m beg api.{{ocp4_cluster_name}}
@@ -55,6 +55,7 @@ frontend ssl-apiserver
     use_backend api_int_server if { req.ssl_sni -m beg api-int.{{ocp4_cluster_name}} }
 
 backend api_server
+    log global
     mode tcp
     option ssl-hello-chk
 {% for host in groups['bootstrap'] %}
@@ -65,6 +66,7 @@ backend api_server
 {% endfor %}
 
 backend api_int_server
+    log global
     mode tcp
     option ssl-hello-chk
 {% for host in groups['bootstrap'] %}
@@ -75,11 +77,13 @@ backend api_int_server
 {% endfor %}
 
 frontend ssl_machineconfig
+    log global
     bind *:22623
     mode tcp
     default_backend machineconfig
 
 backend machineconfig
+    log global
     mode tcp
 {% for host in groups['bootstrap'] %}
     server machineconfig01 {{ hostvars[host]['ansible_host'] }}:22623 check
@@ -89,6 +93,7 @@ backend machineconfig
 {% endfor %}
 
 frontend http
+    log global
     bind {{ hostvars['bastion']['ansible_host'] }}:80
     mode tcp
     acl is_openshift_router hdr(host) -m dom .apps.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}}
@@ -96,30 +101,49 @@ frontend http
     default_backend bastion_http
 
 backend openshift_router_http
+    log global
     mode tcp
 {% for host in groups['workers'] %}
     server node0{{ loop.index }} {{ hostvars[host]['ansible_host'] }}:80 check
 {% endfor %}
 
 backend bastion_http
+    log global
     mode tcp
-    server bastion 127.0.0.1:80
+    server bastion 127.0.0.1:8080
 
 frontend https
+    log global
     bind {{ hostvars['bastion']['ansible_host'] }}:443
     mode tcp
-    option tcplog
+    option httplog
     tcp-request inspect-delay 5s
     tcp-request content accept if { req.ssl_hello_type 1 }
     use_backend openshift_router_https if { req.ssl_sni -m dom .apps.{{ocp4_cluster_name}}.{{ocp4_cluster_domain_name}} }
     default_backend bastion_https
 
 backend openshift_router_https
+    log global
     mode tcp
 {% for host in groups['workers'] %}
     server node0{{ loop.index }} {{ hostvars[host]['ansible_host'] }}:443 check
 {% endfor %}
 
 backend bastion_https
+    log global
     mode tcp
-    server bastion 127.0.0.1:443
+    server bastion 127.0.0.1:8443
+
+frontend docker_secure 
+    log global
+    bind *:5000
+    mode tcp
+    option httplog
+    tcp-request inspect-delay 5s
+    tcp-request content accept if { req.ssl_hello_type 1 }
+    default_backend nexus_docker_secure
+
+backend nexus_docker_secure
+    log global
+    mode tcp
+    server bastion {{ hostvars['bastion']['ansible_host'] }}:5555 check

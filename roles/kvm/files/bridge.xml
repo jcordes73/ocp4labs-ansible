@@ -1,0 +1,1 @@
+<network><name>br0</name><forward mode="bridge"/><bridge name="br0" /></network>

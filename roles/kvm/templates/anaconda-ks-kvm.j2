@@ -1,0 +1,52 @@
+#version=RHEL8
+# System authorization information
+auth --enableshadow --passalgo=sha512
+# Use graphical install
+graphical
+# Run the Setup Agent on first boot
+firstboot --enable
+ignoredisk --only-use=sda
+# Keyboard layouts
+keyboard --vckeymap=de --xlayouts='de'
+# System language
+lang en_US.UTF-8
+
+# Network information
+network  --bootproto=dhcp --device=enp1s0 --ipv6=auto --activate
+
+# Use network installation
+url --url="http://{{ hostvars['bastion']['ansible_host'] }}/RedHat-RHEL/8.1"
+# Root password
+rootpw --iscrypted $6$oMfUABOznmu.0Fco$tAOYuCgw0stq./H8xi5A2TwMIT4lJhXRj6OB/YID.RRtjBDHb09mDJyOYOGRq88Fd6XQOFVarxfkkMCwqCJ821
+sshkey --username=root "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDH+KnGyJQflNqu9svgCxcuTojshIYwOZ0e6jNSqaYHLubUxzzvpgjNY46hbnAP+WFDqBbIWnAYlfk7OtUIXOnMu6Piyg3jsOfzk7AroiJJ4XoPY1mvc6K98vQ9jdHXAE6OJzNt3lGMl0CPTbWOlUH/j7mxNCZv04395iBDu5WPfgJ3b5nRR7hYZgD+USyaXGQuqvycW1ZT30hSTz3sUamyKFl5FHcRe8uU5NOfj1HkPXHwooqXiJgG3E0UC7BgY3WDpd4CASc6NjOCXNG3ZuI3fRSYBWwB6xn9wCXcoV0prylqfLTeo1SJhBwu7SphdytiLbQRL/fFGdjaBNOChoVB root@bastion.ocplabs.com"
+
+# System services
+services --enabled="chronyd"
+# System timezone
+timezone Europe/Berlin --isUtc --ntpservers={{ hostvars['bastion']['ansible_host'] }}
+# System bootloader configuration
+bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
+autopart --type=lvm
+# Partition clearing information
+clearpart --all --initlabel --drives=sda,sdb
+reboot
+
+%packages
+@^minimal-environment
+@headless-management
+@network-server
+@standard
+@system-tools
+kexec-tools
+
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end
+
+%anaconda
+pwpolicy root --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
+pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+%end

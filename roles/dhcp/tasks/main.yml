@@ -1,11 +1,15 @@
 - name: Ensure dhcp is installed
   yum:
-    name: dhcp
+    name: dhcp-server
     state: installed
 - name: Create DHCP config
   template:
     src: dhcpd.j2
     dest: /etc/dhcp/dhcpd.conf
+- name: Copy Grub based on MAC address
+  copy:
+    src: grub.cfg
+    dest: /var/lib/tftpboot/uefi
 - name: restart dhcp
   systemd:
     name: dhcpd

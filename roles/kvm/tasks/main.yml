@@ -1,0 +1,12 @@
+- name: Create initial Grub (KVM Nodes) configuration
+  import_tasks: create_initial_grub_configuration.yml
+  when: "'bastion' in group_names"
+- name: Provision libvirt on KVM Host
+  import_tasks: provision_libvirt.yml
+  when: "'kvm' in group_names"
+- name: Remove all existing nodes
+  import_tasks: remove_all_nodes.yml
+  when: "'kvm' in group_names"
+- name: Create share for VMs
+  import_tasks: create_kvm_share.yml
+  when: "'kvm' in group_names"

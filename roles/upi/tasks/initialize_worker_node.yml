@@ -1,7 +1,18 @@
-- wakeonlan:
-    mac: "{{ hostvars[item]['ethernet'] }}"
-    broadcast: 192.168.1.255
+- shell:
+   cmd: virt-install --name {{ item }} --memory {{ worker_node_memory }} --vcpus {{ worker_node_cpu }} --cpu "{{ cpu_model }}" --disk size={{ worker_node_disksize }},format=raw,bus=virtio,io=native,cache=none --hvm --network bridge=br0,mac={{ hostvars[item]['ethernet'] }},model=virtio --pxe --boot uefi --os-type=linux --os-variant {{ os_variant }} --keymap=de-de
+  delegate_to: "{{ hostvars[item]['kvm_host'] }}"
   with_items: "{{ groups['workers'] }}"
-- pause:
-    minutes: 1
-  
+  register: create_worker_instances
+  retries: 3
+  delay: 3
+  ignore_errors: yes
+  async: 900
+  poll: 0
+- async_status:
+    jid: "{{ item.ansible_job_id }}"
+  delegate_to: "{{ hostvars[item.item]['kvm_host'] }}"
+  register: jobs
+  until: jobs.finished
+  delay: 10
+  retries: 90
+  with_items: "{{ create_worker_instances.results }}"

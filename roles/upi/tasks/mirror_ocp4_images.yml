@@ -1,14 +1,20 @@
-- get_url:
-    url: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-    dest: /usr/bin/jq
-    mode: '755'
-- shell: curl --silent --data-urlencode "grant_type=refresh_token" --data-urlencode "client_id=cloud-services" --data-urlencode "refresh_token={{ ocp4_offline_access_token }}" https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token | jq -r .access_token
+- yum:
+    name: jq
+    state: installed
+- shell: curl --data-urlencode "grant_type=refresh_token" --data-urlencode "client_id=cloud-services" --data-urlencode "refresh_token={{ ocp4_offline_access_token }}" https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token | jq -r .access_token
   register: bearer_token_output
 - set_fact:
     bearer_token: "{{ bearer_token_output.stdout }}"
+- shell:
+    cmd: echo -n "admin:admin123" | base64 -w0
+  register: nexus_digest_output
+- set_fact:
+    nexus_digest: "{{ nexus_digest_output.stdout }}"
 - shell: "curl -X POST \"https://api.openshift.com/api/accounts_mgmt/v1/access_token\" -H \"accept: application/json\" -H \"Authorization: Bearer {{ bearer_token }}\" -o {{ ocp4_home }}/pull-secrets-temp.json"
-- shell: "jq \'.auths += {\"{{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}\": {\"auth\": \"{{ nexus_digest }}\",\"email\": \"noemail@localhost\"}}\' < {{ ocp4_home }}/pull-secrets-temp.json > {{ ocp4_home }}/pull-secrets.json"
+- shell: "jq \'.auths += {\"{{ hostvars['bastion']['ansible_host'] }}:{{ docker_secure_port }}\": {\"auth\": \"{{ nexus_digest }}\",\"email\": \"noemail@localhost\"}}\' < {{ ocp4_home }}/pull-secrets-temp.json > {{ ocp4_home }}/pull-secrets.json"
 - file:
     path: "{{ ocp4_home }}/pull-secrets-temp.json"
     state: absent
-- shell: "{{ ocp4_home }}/bin/oc adm release mirror -a {{ ocp4_home }}/pull-secrets.json --from=quay.io/openshift-release-dev/ocp-release:{{ ocp4_release }} --to-release-image={{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev:{{ ocp4_release }} --to={{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev --insecure=true"
+- shell: "{{ ocp4_home }}/bin/oc adm release mirror -a {{ ocp4_home }}/pull-secrets.json --from=quay.io/openshift-release-dev/ocp-release:{{ ocp4_release }}-x86_64 --to-release-image={{ hostvars['bastion']['ansible_host'] }}:{{ docker_secure_port }}/openshift-release-dev:{{ ocp4_release }} --to={{ hostvars['bastion']['ansible_host'] }}:{{ docker_secure_port }}/openshift-release-dev --insecure=true"
+  ignore_errors: yes
+  retries: 3

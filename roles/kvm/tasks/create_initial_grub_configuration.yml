@@ -1,0 +1,36 @@
+- template:
+    src: grub-kvm.j2
+    dest: /var/lib/tftpboot/uefi/grub.cfg-{{ hostvars[item]['ethernet'] }}
+  with_items: "{{ groups['kvm'] }}"
+#- file:
+#    path: /mnt/rhel8-install
+#    state: directory
+#- name: Mount RHEL 8.1 DVD read-only
+#  mount:
+#    path: /mnt/rhel8-install/
+#    src: /root/rhel-8.1-x86_64-dvd.iso
+#    fstype: iso9660
+#    opts: loop,ro
+#    state: mounted
+- selinux:
+    state: disabled
+#- file:
+#    path: /var/www/html/RedHat-RHEL/8.1
+#    state: directory
+#- copy:
+#    src: /mnt/rhel8-install/
+#    dest: /var/www/html/RedHat-RHEL/8.1
+#- name: Unmount RHEL 8.1 DVD
+#  mount:
+#    path: /mnt/rhel8-install/
+#    state: unmounted
+- template:
+    src: anaconda-ks-kvm.j2
+    dest: /var/www/html/RedHat-RHEL/anaconda-ks-kvm.cfg
+- shell: chcon -Rv --type=httpd_sys_content_t /var/www/html
+- selinux:
+    policy: targeted
+    state: enforcing
+- copy:
+    src:  /var/www/html/RedHat-RHEL/8.1/images/pxeboot/initrd.img
+    dest: /var/lib/tftpboot/images/RHEL-8.1/initrd.img

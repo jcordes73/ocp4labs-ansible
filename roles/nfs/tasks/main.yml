@@ -1,11 +1,9 @@
 - name: Install NFS Server
   yum:
-    name: "{{ packages }}"
+    name:
+      - nfs-utils
+      - rpcbind
     state: present
-  vars:
-    packages:
-    - nfs-utils
-    - rpcbind
 - name: Enable NFS service on firewalld
   firewalld:
     service: nfs
@@ -21,11 +19,10 @@
     state: started
     enabled: yes
   with_items:
-  - nfs
-  - nfs-lock
+  - nfs-server
   - rpcbind
-- name: Change permission to nfsnobody
+- name: Change permission to nobody
   file:
     path: /mnt/container-storage
-    owner: nfsnobody
-    group: nfsnobody
+    owner: nobody
+    group: nobody

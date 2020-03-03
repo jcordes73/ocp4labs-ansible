@@ -1,10 +1,13 @@
 apiVersion: v1
 baseDomain: {{ ocp4_cluster_domain_name }}
+proxy:
+  httpProxy: http://{{ hostvars['bastion']['ansible_host'] }}:3128 
+  httpsProxy: http://{{ hostvars['bastion']['ansible_host'] }}:3128 
 compute:
 - hyperthreading: Disabled
   name: worker
   platform: {}
-  replicas: {{ groups['workers'] | length }} 
+  replicas: 0
 controlPlane:
   hyperthreading: Disabled
   name: master
@@ -24,10 +27,10 @@ platform:
   none: {}
 imageContentSources:
 - mirrors:
-  - {{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev
+  - {{ hostvars['bastion']['ansible_host'] }}:{{ docker_secure_port }}/openshift-release-dev
   source: quay.io/openshift-release-dev/ocp-release
 - mirrors:
-  - {{ hostvars['bastion']['ansible_host'] }}:{{ nexus_port }}/openshift-release-dev
+  - {{ hostvars['bastion']['ansible_host'] }}:{{ docker_secure_port }}/openshift-release-dev
   source: quay.io/openshift-release-dev/ocp-v4.0-art-dev
 pullSecret: '{"auths":{"{{ hostvars['bastion']['ansible_host'] }}": {"auth": "{{ nexus_digest }}","email": "noemail@localhost"}}}'
 additionalTrustBundle: |

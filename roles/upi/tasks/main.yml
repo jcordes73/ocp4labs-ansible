@@ -1,38 +1,40 @@
-#- name: Cleanup known_hosts
-#  import_tasks: clean_known_hosts.yml
-#- name: Download OCP 4 Clients and Installer
-#  import_tasks: install_clients.yml
-#- name: Create OCP 4 UPI intallation configuration for Bare Metal
-#  import_tasks: create_installer_config.yml
-#- name: Upload OCP 4 UPI installion assets
-#  import_tasks: install_installer_assets.yml
-#- name: Mirror OCP 4 Images for Disconnected Install
-#  import_tasks: mirror_ocp4_images.yml
-#- name: Create initial Grub (all Nodes) configuration
-#  import_tasks: create_initial_grub_configuration.yml
-#- name: Initialize Bootstrap node
-#  import_tasks: initialize_bootstrap_node.yml
-#- name: Create Bootstrap Grub configuration
-#  import_tasks: create_bootstrap_grub_configuration.yml
-#- name: Initialize Master node
-#  import_tasks: initialize_master_node.yml
-#- name: Create Master Grub configuration
-#  import_tasks: create_master_grub_configuration.yml
-#- name: Wait for Bootstrap completion
-#  import_tasks: wait_for_bootstrap_completion.yml
-#- name: Create Worker Grub configuration for Bootstrap Node
-#  import_tasks: create_bootstrap_worker_grub_configuration.yml
-#- name: Cleanup known_hosts
-#  import_tasks: clean_known_hosts.yml
-#- name: Shutdown Bootstrap Node
-#  import_tasks: shutdown_bootstrap_node.yml
+- name: Include global variables
+  include_vars: ../../all/defaults/main.yml
+- name: Include variables from Nexus
+  include_vars: ../../nexus/defaults/main.yml
+- name: Cleanup known_hosts
+  import_tasks: clean_known_hosts.yml
+- name: Download OCP 4 Clients and Installer
+  import_tasks: install_clients.yml
+- name: Create OCP 4 UPI intallation configuration for Bare Metal
+  import_tasks: create_installer_config.yml
+- name: Upload OCP 4 UPI installion assets
+  import_tasks: install_installer_assets.yml
+- name: Mirror OCP 4 Images for Disconnected Install
+  import_tasks: mirror_ocp4_images.yml
+- name: Create initial Grub (all Nodes) configuration
+  import_tasks: create_initial_grub_configuration.yml
+- name: Initialize Bootstrap nodes
+  import_tasks: initialize_bootstrap_nodes.yml
+- name: Create Bootstrap Grub configuration
+  import_tasks: create_bootstrap_grub_configuration.yml
+- name: Create Master Grub configuration
+  import_tasks: create_master_grub_configuration.yml
+- name: Wait for Bootstrap completion
+  import_tasks: wait_for_bootstrap_completion.yml
+- name: Create Worker Grub configuration for Bootstrap Node
+  import_tasks: create_bootstrap_worker_grub_configuration.yml
+- name: Cleanup known_hosts
+  import_tasks: clean_known_hosts.yml
+- name: Shutdown Bootstrap Node
+  import_tasks: shutdown_bootstrap_node.yml
 - name: Initialize Worker Nodes
   import_tasks: initialize_worker_node.yml
-- name: Change registry storage to emptyDir
-  import_tasks: change_registry_storage.yml
 - name: Create Worker Grub configuration
   import_tasks: create_worker_grub_configuration.yml
 - name: Accept Node certificates
   import_tasks: accept_node_certificates.yml
 - name: Wait for Installation completion
   import_tasks: wait_for_installation_completion.yml
+- name: Change registry storage to NFS
+  import_tasks: change_registry_storage.yml

@@ -1,0 +1,42 @@
+- redhat_subscription:
+    state: present
+    username: "{{ rhn_user }}"
+    password: "{{ rhn_password }}"
+    consumer_id: "{{ hostvars[inventory_hostname]['systemid'] }}"
+    auto_attach: true
+  ignore_errors: yes
+- shell:
+    cmd: subscription-manager refresh
+- yum:
+    update_only: yes
+    state: latest 
+- yum:
+    name:
+      - qemu-kvm
+      - libvirt
+      - python3-libvirt
+      - libguestfs-tools
+      - virt-install
+      - python3-lxml
+      - tuned
+    state: installed
+- systemd:
+    name: libvirtd
+    state: restarted
+    enabled: yes
+- systemd:
+    name: tuned
+    state: started
+    enabled: yes
+- shell:
+    cmd: tuned-adm profile virtual-host
+- copy:
+    src: bridge.xml 
+    dest: bridge.xml
+- script: create_bridge.sh
+- firewalld:
+    zone: public
+    port: 5900/tcp
+    permanent: yes
+    immediate: yes
+    state: enabled
